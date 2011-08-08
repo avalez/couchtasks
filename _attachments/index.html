@@ -16,17 +16,17 @@
     <div id="content"></div>
 
     <footer>
-      <a href="#!" class="home"></a>
-      <a href="#!/complete/" class="archive"></a>
-      <a href="#!/sync/" class="cloud"></a>
+      <h1>Grocery Sync</h1>
+      <!-- <a href="#!" class="home"></a> -->
+      <!-- <a href="#!/complete/" class="archive"></a> -->
+      <!-- <a href="#!/sync/" class="cloud"></a> -->
 
-      <a href="#!/add_task/" id="add"></a>
-      <a href="#!/add_server/" id="add_serverbtn"></a>
+      <!-- <a href="#!/add_task/" id="add"></a> -->
+      <!-- <a href="#!/add_server/" id="add_serverbtn"></a> -->
 
-      <a id="createtask_btn" class="plain_btn">Create</a>
-      <a id="edittask_btn" class="plain_btn active">Save</a>
-      <a id="createserver_btn" class="plain_btn">Create</a>
-
+      <!-- <a id="createtask_btn" class="plain_btn">Create</a> -->
+      <!-- <a id="edittask_btn" class="plain_btn active">Save</a> -->
+      <!-- <a id="createserver_btn" class="plain_btn">Create</a> -->
     </footer>
 
     <script type="text/html" id="addtask_tpl">
@@ -41,16 +41,21 @@
     </script>
 
     <script type="text/html" id="home_tpl">
+
+      <form action="#add_task" id="add_task_frm">
+        <fieldset>
+          <input type="text" name="title" placeholder="Add Item" required />
+        </fieldset>
+      </form>
+
       <ul id="notelist">
-        <li class="header"><h3>Tasks</h3></li>
         {{#notes}}
-        <li data-id="{{id}}" data-rev="{{rev}}" data-index="{{index}}" class="task">
-          <input class="checker" type="checkbox" />
-          <span class="title">{{title}}</span>&nbsp;
-          <span class="arrow right">&rsaquo;</span>
+        <li data-id="{{id}}" data-rev="{{rev}}" data-index="{{index}}" class="task {{#check}}deleted{{/check}}">
+          <input class="checker" type="checkbox" {{#check}}checked="checked"{{/check}}/>
+          <span class="title">{{text}}</span>&nbsp;
         </li>
         {{/notes}}
-        {{^notes}}<li class="none">No Tasks</li>{{/notes}}
+        {{^notes}}<li class="none">No Groceries</li>{{/notes}}
       </ul>
     </script>
 
@@ -127,9 +132,8 @@
 
   </body>
 
-  <script src="../../../_utils/script/jquery.js"></script>
+  <script src="./js/jquery.js"></script>
 
-  <script src="./js/jquery-ui-1.8.10.custom.min.js"></script>
   <script src="./js/jquery.couch.js"></script>
 
   <script src="./js/mustache.js"></script>

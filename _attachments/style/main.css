@@ -4,14 +4,18 @@
     border:0px;
 }
 
+body, html {
+    height:100%;
+}
+
 body {
-    background:#e9e7e4;
+    background:#9a2628 url(../img/bgtile.png);
     overflow-x:hidden;
     overflow-y:scroll;
 }
 
 body, p {
-    font:1em Helvetica, arial, sans-serif;
+    font:1em arial, sans-serif;
     color:#222;
 }
 
@@ -35,7 +39,7 @@ form {
 }
 
 input[type=text],input[type=password], textarea {
-    font:1em Helvetica, arial, sans-serif;
+    font:1em arial, sans-serif;
     width:100%;
     display:block;
     padding:10px;
@@ -85,34 +89,27 @@ input[type=submit] {
     text-shadow: 1px 1px 1px #FFF;
 }
 
-fieldset {
-    border-radius:10px;
-    border:1px solid #AAA;
-    -moz-box-shadow:0px 1px 2px #666;
-    -webkit-box-shadow:0px 1px 2px #666;
-    box-shadow:0px 1px 2px #666;
-    background:white;
-    overflow:hidden;
-    margin-bottom:20px;
-}
+/* fieldset { */
+/*     border-radius:10px; */
+/*     border:1px solid #AAA; */
+/*     -moz-box-shadow:0px 1px 2px #666; */
+/*     -webkit-box-shadow:0px 1px 2px #666; */
+/*     box-shadow:0px 1px 2px #666; */
+/*     background:white; */
+/*     overflow:hidden; */
+/*     margin-bottom:20px; */
+/* } */
 
-fieldset input:first-child, fieldset .textarea:first-child {
-    border-top-left-radius:10px;
-    border-top-right-radius:10px;
-    border-top:0px !important;
-}
+/* fieldset input:first-child, fieldset .textarea:first-child { */
+/*     border-top-left-radius:10px; */
+/*     border-top-right-radius:10px; */
+/*     border-top:0px !important; */
+/* } */
 
-fieldset input:last-child, fieldset textarea:last-child {
-    border-bottom-left-radius:15px;
-    border-bottom-right-radius:15px;
-}
-
-div.input,
-fieldset input[type=password],
-fieldset input[type=text],
-fieldset .textarea {
-    border-top:1px solid #CCC;
-}
+/* fieldset input:last-child, fieldset textarea:last-child { */
+/*     border-bottom-left-radius:15px; */
+/*     border-bottom-right-radius:15px; */
+/* } */
 
 div.input {
     line-height:37px;
@@ -122,22 +119,55 @@ input[type=checkbox] {
     display:none;
 }
 
+#add_task_frm input {
+    border-radius: 5px;
+    border: 1px solid #000;
+    background: #ebeae4;
+    box-shadow: inset 0 0 3px #333;
+    -webkit-box-shadow: inset 0 0 3px #333;
+}
+
+#add_task_frm input::-webkit-input-placeholder {
+   color: #868686;
+    text-shadow: 1px 1px 1px #FFF;
+}
+
+#add_task_frm input:-moz-placeholder {
+   color: #868686;
+    text-shadow: 1px 1px 1px #FFF;
+}
+
+#add_task_frm fieldset{
+    border-radius: 5px;
+    box-shadow: 0px 1px 2px #e44449;
+    /* box-shadow: 0 1 2px #e44449; */
+}
+
 .checkbox div {
     display:block;
     width:16px;
     height:16px;
-    background-size:100%;
+    /* background-size:100%; */
     background-image:url(../img/unchecked.png);
+}
+
+li:first-child .checkbox {
+    border-radius: 5px 0px 0px 0px;
+
+}
+li:last-child .checkbox {
+    border-radius: 0px 0px 0px 5px;
 }
 
 .checkbox {
     width:16px;
     height:16px;
     float:left;
-    padding:10px;
+    padding: 10px 8px 10px 12px;
     -webkit-tap-highlight-color:rgba(0,0,0,0);
     -webkit-appearance:none;
     -moz-appearance:none;
+    background:#f4f3ef;
 }
 
 .checkbox.checked div{
@@ -160,7 +190,6 @@ input[type=checkbox] {
 }
 
 .pane {
-    background:#e9e7e4;
     position:absolute;
     top:50px;
     width:100%;
@@ -171,24 +200,38 @@ input[type=checkbox] {
     -moz-transition: all 0.5s ease-in-out;
 }
 
+.content {
+    background:url(../img/bgtop.png) top center no-repeat;
+    min-height:100px;
+}
 .content > h3 {
     margin-top:10px;
+}
+
+footer h1 {
+    text-shadow:0 0 0 transparent, 0px -1px 1px #000;
+    line-height:44px;
+    font-size:24px;
+    letter-spacing:1px;
+    font-weight:normal;
 }
 
 footer {
     z-index:4;
     width:100%;
     display:block;
-    position:fixed;
     top:0px;
-    height:49px;
+    height:48px;
     background:#222;
-    background:-moz-linear-gradient(center top , #444, #222)
+    background:-moz-linear-gradient(center top , #ae1010, #690000)
        repeat scroll 0 0 transparent;
     background      : -webkit-gradient(linear, left top, left bottom,
-                                       color-stop(0%,#444),
-                                       color-stop(100%,#222));
-    border-bottom:1px solid #000;
+                                       color-stop(0%,#ae1010),
+                                       color-stop(100%,#690000));
+    border-bottom:1px solid #4a1313;
+    border-top:1px solid #bf4040;
+    color:white;
+    text-align:center;
 }
 
 footer a {
@@ -235,7 +278,7 @@ footer a {
     =webkit-border-radius:3px;
     border-radius:3px;
     color:#999;
-    text-shadow: 1px 1px 1px #000;
+    text-shadow: 0 0 0 transparent, 1px 1px 1px #000;
     letter-spacing:1.1px;
     cursor:pointer;
 }
@@ -289,25 +332,40 @@ footer a:first-child {
     display:block;
 }
 
+#notelist {
+    box-shadow: 1px 1px 3px #000;
+    -webkit-box-shadow: 1px 1px 3px #000;
+    background:#e8e7e1;
+    margin: 0px 10px 10px 10px;
+    border-radius:5px;
+    border: 1px solid #FFF;
+}
+
+#notelist li:first-child {
+    border-top:0px;
+    border-radius:5px 5px 0px 0px;
+}
+#notelist li:last-child {
+    border-bottom:0px;
+    border-radius:0px 0px 5px 5px;
+}
+
 #notelist li {
     line-height: 35px;
-    border-top:1px solid #EEE;
-    border-bottom:1px solid #BBB;
+    border-top:1px dotted #EEE;
+    border-bottom:1px dotted #BBB;
 }
 
 #notelist li.deleted {
-    color:#666;
-    background:#d7d5d2;
-    border-top:1px solid #999;
-    border-bottom:1px solid #AAA;
+    color:#999;
 }
 
-.deleted .title {
-    text-decoration:line-through;
-}
+/* .deleted .title { */
+/*     text-decoration:line-through; */
+/* } */
 
 .task {
-    background:#e9e7e4;
+    background: url(../img/bgitem.png);
 }
 
 .none {
@@ -322,9 +380,10 @@ footer a:first-child {
     position:absolute;
     left:35px;
     right:30px;
+    text-indent:10px;
     white-space:nowrap;
     text-overflow: ellipsis;
-    overflow:hidden;
+    text-shadow: 0 0 0 transparent, 1px 1px 1px #FFF;
 }
 
 .delete, .deleteserver {

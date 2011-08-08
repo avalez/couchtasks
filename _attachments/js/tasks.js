@@ -29,6 +29,8 @@ var Tasks = (function () {
   }
 
   var mainDb  = document.location.pathname.split("/")[1],
+  hostCouch = "http://couchbase.ic.ht/grocery-sync",
+  $changes,
   paneWidth = 0,
   isMobile = Utils.isMobile(),
   router  = new Router(),
@@ -67,22 +69,22 @@ var Tasks = (function () {
         '.delete' : {'event': pressed, 'callback' : deleteTask}
       },
       init : function(dom) {
-        if (!isMobile) {
-          $("#notelist", dom).sortable({
-            items: "li:not(.header)",
-            axis:'y',
-            distance:30,
-            start: function(event, ui) {
-              ui.item.attr("data-noclick","true");
-            },
-            stop: function(event, ui) {
-              var index = createIndex(ui.item);
-              if (index !== false) {
-                updateIndex(ui.item.attr("data-id"), index);
-              }
-            }
-          });
-        }
+        // if (!isMobile) {
+        //   $("#notelist", dom).sortable({
+        //     items: "li:not(.header)",
+        //     axis:'y',
+        //     distance:30,
+        //     start: function(event, ui) {
+        //       ui.item.attr("data-noclick","true");
+        //     },
+        //     stop: function(event, ui) {
+        //       var index = createIndex(ui.item);
+        //       if (index !== false) {
+        //         updateIndex(ui.item.attr("data-id"), index);
+        //       }
+        //     }
+        //   });
+        // }
       }
     }
   };
@@ -90,7 +92,7 @@ var Tasks = (function () {
   templates.complete_tpl = templates.home_tpl;
 
   router.get(/^(!)?$/, function () {
-    view('couchtasks/tasks', {
+    view('grocery/recent-items', {
       descending: true,
       success : function (data) {
         tasks = getValues(data.rows);
@@ -142,14 +144,17 @@ var Tasks = (function () {
   });
 
   router.post('edit', function (e, details) {
-    var doc = docs[details.id];
-    doc.notes = details.notes;
-    doc.status = details.completed && details.completed === "on" ?
-      "complete" : "active";
-    $db.saveDoc(doc, {"success": function () {
-      viewCache = {};
-      router.back();
-    }});
+    $db.openDoc(details.id).then(function(doc) {
+      console.log(doc);
+    });
+    // var doc = docs[details.id];
+    // doc.notes = details.notes;
+    // doc.status = details.completed && details.completed === "on" ?
+    //   "complete" : "active";
+    // $db.saveDoc(doc, {"success": function () {
+    //   viewCache = {};
+    //   router.back();
+    // }});
   });
 
   router.post('add_server', function (e, details) {
@@ -167,7 +172,7 @@ var Tasks = (function () {
   router.post('add_task', function (e, details) {
     newTask(details.title, details.notes, function () {
       viewCache = {};
-      router.back();
+      router.refresh();
     });
   });
 
@@ -192,26 +197,22 @@ var Tasks = (function () {
       "complete_tpl": {"checked": "active", "unchecked": "complete"}
     };
 
-    var cur_status = status[current_tpl][$(this).is(":checked") ? "checked" : "unchecked"],
-    li = $(e.target).parents("li"),
-    id = li.attr("data-id"),
-    url = "/" + mainDb + "/_design/couchtasks/_update/update_status/" + id +
-      "?status=" + cur_status;
+    var li = $(e.target).parents("li");
+    var id = li.attr("data-id");
 
-    $.ajax({
-      url: url,
-      type: "PUT",
-        contentType:"application/json",
-        datatype:"json",
-        success: function() {
-          viewCache = {};
-          if (cur_status === "complete" && current_tpl === "home_tpl" ||
-              cur_status === "active" && current_tpl === "complete_tpl") {
-            li.addClass("deleted");
-          } else {
-            li.removeClass("deleted");
+    $db.openDoc(id, {
+      success: function(doc) {
+        doc.check = !doc.check;
+        $db.saveDoc(doc, {
+          success: function() {
+            if (!doc.check) {
+              li.removeClass("deleted");
+            } else {
+              li.addClass("deleted");
+            }
           }
-        }
+        });
+      }
     });
   }
 
@@ -312,22 +313,24 @@ var Tasks = (function () {
 
     } else {
 
-      if (current_tpl) {
-        currentOffset += (calcIndex(tpl, current_tpl)) ? paneWidth : -paneWidth;
-      }
+      // if (current_tpl) {
+      //   currentOffset += (calcIndex(tpl, current_tpl)) ? paneWidth : -paneWidth;
+      // }
 
       var tmp = lastPane;
-      $("#content").one("webkitTransitionEnd transitionend", function() {
-        if (tmp) {
-          tmp.remove();
-          tmp = null;
-        }
-      });
+      // $("#content").one("webkitTransitionEnd transitionend", function() {
+      //   if (tmp) {
+      //     tmp.remove();
+      //     tmp = null;
+      //   }
+      // });
 
-      transformX($pane, currentOffset);
+      // transformX($pane, currentOffset);
       $pane.appendTo($("#content"));
-
-      transformX($("#content"), -currentOffset);
+      if (tmp) {
+        tmp.remove();
+      }
+      // transformX($("#content"), -currentOffset);
       lastPane = $pane;
     }
     current_tpl = tpl;
@@ -425,7 +428,11 @@ var Tasks = (function () {
     if (!$(e.target).is("li.task") && e.target.nodeName !== 'SPAN') {
       return;
     }
-    document.location.href = "#!/task/" + $(this).attr("data-id") + "/";
+    var c = $(this).find(".checker");
+    $(this).find(".checkbox").toggleClass("checked");
+    c.attr("checked", !c.is(":checked")).trigger("change");
+    //markDone({target:c[0]});
+
   }
 
   function doSync(e) {
@@ -510,11 +517,20 @@ var Tasks = (function () {
     $("#add_task_frm").trigger("submit");
   });
 
-  $(document).bind("keypress", function (e) {
-    if (e.which === 13 && e.target.nodeName !== 'TEXTAREA') {
-      document.location.href = "#!/add_task/";
-    }
-  });
+  function startCounter() {
+
+    //var opts = {filter:"grocery/design_docs", continuous:true};
+    //$.couch.replicate(mainDb, hostCouch, {error:function() {}}, opts);
+    //$.couch.replicate(hostCouch, mainDb, {error:function() {}}, opts);
+
+    $changes = $db.changes();
+    $changes.onChange(function() {
+      viewCache = {};
+      router.refresh();
+    });
+  }
+
+  setTimeout(startCounter, 1000);
 
   $(window).bind("resize", function () {
     paneWidth = $("body").width();
