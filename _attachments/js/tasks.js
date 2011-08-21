@@ -17,30 +17,19 @@ var pressed = Utils.isMobile() ? "click" : "click";
 
 var Tasks = (function () {
 
-  // Override link behaviour for mobiles because they are so damn slow
-  if (Utils.isMobile()) {
-
-    $(document).bind("touchend", function(e) {
-      if (e.target.nodeName === 'A' && e.target.getAttribute('href')) {
-        e.preventDefault();
-        document.location.href = e.target.getAttribute('href');
-      }
-    });
-  }
-
-  var mainDb  = document.location.pathname.split("/")[1],
-  paneWidth = 0,
-  isMobile = Utils.isMobile(),
-  router  = new Router(),
-  current_tpl = null,
-  slidePane = null,
-  docs    = {},
-  tasks   = [],
-  servers = [],
-  zIndex  = 0,
-  currentOffset = 0,
-  lastPane = null,
-  $db     = $.couch.db(mainDb);
+  var mainDb  = document.location.pathname.split("/")[1];
+  var paneWidth = 0;
+  var isMobile = Utils.isMobile();
+  var router  = new Router();
+  var current_tpl = null;
+  var slidePane = null;
+  var docs    = {};
+  var tasks   = [];
+  var servers = [];
+  var zIndex  = 0;
+  var currentOffset = 0;
+  var lastPane = null;
+  var $db     = $.couch.db(mainDb);
 
   var templates = {
     addserver_tpl : {
