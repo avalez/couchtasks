@@ -36,6 +36,7 @@
           <div class="textarea">
             <textarea placeholder="Enter Notes" name="notes"></textarea>
           </div>
+          <input type="text" name="tags" placeholder="Tags" />
         </fieldset>
       </form>
     </script>
@@ -100,6 +101,7 @@
           <div class="textarea">
             <textarea placeholder="Enter Notes" name="notes">{{notes}}</textarea>
           </div>
+          <input type="text" name="tags" value="{{tags}}" placeholder="Tags" />
           <div class="input">
             <input type="checkbox" {{completed}} name="completed" />
             <label>Completed</label>

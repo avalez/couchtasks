@@ -125,6 +125,7 @@ var Tasks = (function () {
       success: function(doc) {
         docs[doc._id] = doc;
         doc.completed = doc.status === "complete" ? "checked='checked'" : "";
+        doc.tags = doc.tags.join(" ");
         render('!/task/:id/', "task_tpl", null, doc);
       }
     });
@@ -132,6 +133,7 @@ var Tasks = (function () {
 
   router.post('edit', function (e, details) {
     var doc = docs[details.id];
+    doc.tags = details.tags.split(" ");
     doc.notes = details.notes;
     doc.status = details.completed && details.completed === "on" ?
       "complete" : "active";
@@ -154,7 +156,7 @@ var Tasks = (function () {
   });
 
   router.post('add_task', function (e, details) {
-    newTask(details.title, details.notes, function () {
+    newTask(details.title, details.notes, details.tags, function () {
       viewCache = {};
       router.back();
     });
@@ -362,7 +364,7 @@ var Tasks = (function () {
     return false;
   }
 
-  function newTask(title, notes, callback) {
+  function newTask(title, notes, tags, callback) {
 
     if(title === "") {
       $("input[name=title]").addClass("formerror");
@@ -376,7 +378,7 @@ var Tasks = (function () {
       index: index,
       "status":"active",
       "title":title,
-      "tags":[],
+      "tags":tags.split(" "),
       "notes":notes
     }, {
       "success": function (data) {
