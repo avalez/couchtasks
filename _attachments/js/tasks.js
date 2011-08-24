@@ -77,11 +77,19 @@ var Tasks = (function () {
 
   router.get(/#\/?(.*)/, function (_, t) {
 
+    var params = $.grep(document.location.hash.replace('#/', '').split(','),
+                      function(x) { return x !== ''; });
+
     var init = function(dom) {
 
       $('.checker', dom).bind('change', markDone);
-      $('.task', dom).bind('click', viewTask),
       $('.delete', dom).bind('click', deleteTask);
+
+      $('.task', dom).bind('click', function(e) {
+        if ($(e.target).is("span.tag")) {
+          addOrRemove(params, $(e.target).data('key'));
+        }
+      }),
 
       $('#edit_filter', dom).bind('mousedown', function() {
         $('#filterui', dom).toggle();
@@ -89,9 +97,7 @@ var Tasks = (function () {
 
       $('#filterui', dom).bind('mousedown', function(e) {
         if (e.target.nodeName === 'A') {
-          var args = $.grep(document.location.hash.replace('#/', '').split(','),
-                            function(x) { return x !== ''; });
-          addOrRemove(args, $(e.target).data('key'));
+          addOrRemove(params, $(e.target).data('key'));
         }
       });
 
@@ -204,6 +210,8 @@ var Tasks = (function () {
 
 
   function addOrRemove(arr, key) {
+    console.log(arr);
+    console.log(key);
     if ($.inArray(key, arr) === -1) {
       arr.push(key);
     } else {

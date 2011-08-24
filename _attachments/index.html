@@ -70,9 +70,9 @@
         {{#notes}}
         <li data-id="{{id}}" data-rev="{{rev}}" data-index="{{index}}" class="task">
           <input class="checker" type="checkbox" />
-          <span class="title">{{title}}</span>&nbsp;
+          <a class="title" href="#/task/{{id}}/">{{title}}</a>&nbsp;
           {{#tags}}
-          <span class="tag tag_{{.}}">{{.}}</span>
+          <span class="tag tag_{{.}}" data-key="{{.}}">{{.}}</span>
           {{/tags}}
           <!-- <span class="arrow right">&rsaquo;</span> -->
         </li>
@@ -87,7 +87,7 @@
         {{#notes}}
         <li data-id="{{id}}" data-rev="{{rev}}" data-index="{{index}}" class="task">
           <input class="checker" type="checkbox" />
-          <span class="title">{{title}}</span>&nbsp;
+          <a class="title" href="#/task/{{id}}/">{{title}}</span>&nbsp;
           <a class="delete right">delete</a>
         </li>
         {{/notes}}

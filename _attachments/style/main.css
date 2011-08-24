@@ -319,7 +319,8 @@ footer a:first-child {
 }
 
 .title {
-    position:absolute;
+    text-decoration:none;
+    color:#222;
     left:35px;
     right:30px;
     white-space:nowrap;
