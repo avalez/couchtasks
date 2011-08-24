@@ -30,6 +30,7 @@ var Tasks = (function () {
   var currentOffset = 0;
   var lastPane = null;
   var $db = $.couch.db(mainDb);
+  var $changes;
   var viewCache = {};
 
 
@@ -617,5 +618,15 @@ var Tasks = (function () {
       router.init(window);
     }
   });
+
+  function startUpdater() {
+    $changes = $db.changes();
+    $changes.onChange(function() {
+      viewCache = {};
+      router.refresh();
+    });
+  }
+
+  setTimeout(startUpdater, 1000);
 
 })();
