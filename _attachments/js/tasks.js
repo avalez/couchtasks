@@ -86,7 +86,13 @@ var Tasks = (function () {
       $('.delete', dom).bind('click', deleteTask);
 
       $('.task', dom).bind('click', function(e) {
-        if ($(e.target).is("span.tag")) {
+        if ($(e.target).is("a.tag")) {
+          addOrRemove(params, $(e.target).data('key'));
+        }
+      }),
+
+      $('#hdr', dom).bind('click', function(e) {
+        if ($(e.target).is("a.tag")) {
           addOrRemove(params, $(e.target).data('key'));
         }
       }),
