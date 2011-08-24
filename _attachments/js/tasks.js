@@ -70,9 +70,18 @@ var Tasks = (function () {
 
   router.get(/#\/?(.*)/, function (_, t) {
 
+    var params = $.grep(document.location.hash.replace('#/', '').split(','),
+                        function(x) { return x !== ''; });
+
     current_tags = $.grep((t || "").split(','), function(x) { return x !== ''; });
 
-    render('home_tpl', '#home_content', {usedTags: current_tags}).then(function() {
+    render('home_tpl', '#home_content', {usedTags: current_tags}, function(dom) {
+      $('#hdr', dom).bind('click', function(e) {
+        if ($(e.target).is("a.tag")) {
+          addOrRemove(params, $(e.target).data('key'));
+        }
+      });
+    }).then(function() {
       updateTaskList();
     });
 
@@ -550,12 +559,6 @@ var Tasks = (function () {
     $('.delete', dom).bind('click', deleteTask);
 
     $('.task', dom).bind('click', function(e) {
-      if ($(e.target).is("a.tag")) {
-        addOrRemove(params, $(e.target).data('key'));
-      }
-    }),
-
-    $('#hdr', dom).bind('click', function(e) {
       if ($(e.target).is("a.tag")) {
         addOrRemove(params, $(e.target).data('key'));
       }
