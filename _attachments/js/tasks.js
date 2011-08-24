@@ -32,19 +32,8 @@ var Tasks = (function () {
   var currentOffset = 0;
   var lastPane = null;
   var $db = $.couch.db(mainDb);
+  var viewCache = {};
 
-  function addOrRemove(arr, key) {
-    if ($.inArray(key, arr) === -1) {
-      arr.push(key);
-    } else {
-      arr = $.grep(arr, function(x) { return x !== key; });
-    }
-    if (arr.length === 0) {
-      document.location.hash = '#/';
-    } else {
-      document.location.hash = '#/' + arr.join(',');
-    }
-  }
 
   router.get('#/add_server/', function () {
     view('couchtasks/servers', {
@@ -54,6 +43,7 @@ var Tasks = (function () {
       }
     });
   });
+
 
   router.get('#/complete/', function (_, id) {
     $db.view('couchtasks/complete', {
@@ -65,6 +55,7 @@ var Tasks = (function () {
     });
   });
 
+
   router.get('#/sync/', function (_, id) {
     $db.view('couchtasks/servers', {
       success : function (data) {
@@ -73,6 +64,7 @@ var Tasks = (function () {
       }
     });
   });
+
 
   router.get('#/task/:id/', function (_, id) {
     $db.openDoc(id, {
@@ -176,24 +168,6 @@ var Tasks = (function () {
     }
   });
 
-  function hasTags(doc, tags) {
-    var i = 0;
-    for(var x in tags) {
-      if ($.inArray(tags[x], doc.tags) !== -1) {
-        ++i;
-      }
-    }
-    return i === tags.length;
-  }
-
-  function exists(arr, id) {
-    for(var obj in arr) {
-      if (arr[obj]._id === id) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   router.post('#edit', function (_, e, details) {
     var doc = docs[details.id];
@@ -208,6 +182,7 @@ var Tasks = (function () {
       }});
   });
 
+
   router.post('#add_server', function (_, e, details) {
     if (details.server === "") {
       $('input[name=server]').addClass('formerror');
@@ -221,6 +196,7 @@ var Tasks = (function () {
       }});
   });
 
+
   router.post('#add_task', function (_, e, details) {
     newTask(details.title, '', '', function (data) {
       viewCache = {};
@@ -228,7 +204,42 @@ var Tasks = (function () {
     });
   });
 
-  var viewCache = {};
+
+  function addOrRemove(arr, key) {
+    if ($.inArray(key, arr) === -1) {
+      arr.push(key);
+    } else {
+      arr = $.grep(arr, function(x) { return x !== key; });
+    }
+    if (arr.length === 0) {
+      document.location.hash = '#/';
+    } else {
+      document.location.hash = '#/' + arr.join(',');
+    }
+  }
+
+
+  function hasTags(doc, tags) {
+    var i = 0;
+    for(var x in tags) {
+      if ($.inArray(tags[x], doc.tags) !== -1) {
+        ++i;
+      }
+    }
+    return i === tags.length;
+  }
+
+
+  function exists(arr, id) {
+    for(var obj in arr) {
+      if (arr[obj]._id === id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
   function view(name, options) {
     if (typeof viewCache[name] === 'undefined') {
       var success = options.success;
@@ -241,6 +252,7 @@ var Tasks = (function () {
       options.success(viewCache[name]);
     }
   }
+
 
   function markDone(e) {
 
@@ -273,6 +285,7 @@ var Tasks = (function () {
     });
   }
 
+
   function updateIndex(id, index) {
     var url = '/' + mainDb + '/_design/couchtasks/_update/update_index/' + id +
       '?index=' + index;
@@ -286,6 +299,7 @@ var Tasks = (function () {
       }
     });
   }
+
 
   function createIndex(el) {
 
@@ -304,6 +318,7 @@ var Tasks = (function () {
     }
   }
 
+
   function getValues(src) {
     var arr = [], i;
     for (i = 0; i < src.length; i++) {
@@ -311,6 +326,7 @@ var Tasks = (function () {
     }
     return arr;
   }
+
 
   function render(tpl, dom, data, init) {
 
@@ -379,15 +395,18 @@ var Tasks = (function () {
     current_tpl = tpl;
   }
 
+
   function transformY(dom, x) {
     dom.css('-moz-transform', 'translate(0, ' + x + 'px)')
       .css('-webkit-transform', 'translate(0, ' + x + 'px)');
   }
 
+
   function transformX(dom, x) {
     dom.css('-moz-transform', 'translate(' + x + 'px, 0)')
       .css('-webkit-transform', 'translate(' + x + 'px, 0)');
   }
+
 
   function checkCanSaveNote(e) {
     if ($('input[name=title]').val() === '') {
@@ -397,6 +416,7 @@ var Tasks = (function () {
     }
   }
 
+
   function checkCanSaveServer(e) {
     if ($('input[name=server]').val() === '') {
       $('#createserver_btn').removeClass('active');
@@ -405,10 +425,12 @@ var Tasks = (function () {
     }
   }
 
+
   function calcIndex(a, b) {
     var indexii = {home_tpl:1, complete_tpl:2, sync_tpl:3, task_tpl:4};
     return indexii[a] > indexii[b];
   }
+
 
   function findTask(id) {
     for(var i = 0; i < tasks.length; i++) {
@@ -418,6 +440,7 @@ var Tasks = (function () {
     }
     return false;
   }
+
 
   function newTask(title, notes, tags, callback) {
 
@@ -442,6 +465,7 @@ var Tasks = (function () {
     });
   }
 
+
   function doReplication(obj, callbacks) {
     $.ajax({
       url: "/_replicate",
@@ -454,6 +478,7 @@ var Tasks = (function () {
     });
   }
 
+
   function createUrl(username, password, server, database) {
     if (username === '') {
       return 'http://' + server + '/' + database;
@@ -462,6 +487,7 @@ var Tasks = (function () {
         server + '/' + database;
     }
   }
+
 
   function viewTask(e) {
     if ($(this).attr("data-noclick")) {
@@ -473,6 +499,7 @@ var Tasks = (function () {
     }
     document.location.href = '#/task/' + $(this).attr('data-id') + '/';
   }
+
 
   function doSync(e) {
 
@@ -505,6 +532,7 @@ var Tasks = (function () {
       }, error: error});
   }
 
+
   function deleteServer(e) {
     e.preventDefault();
     var li = $(e.target).parents('li');
@@ -515,6 +543,7 @@ var Tasks = (function () {
       }
     });
   }
+
 
   function deleteTask(e) {
     e.preventDefault();
@@ -530,6 +559,7 @@ var Tasks = (function () {
     });
   }
 
+
   function createCheckBox(parent) {
     $('input[type=checkbox]', parent).each(function() {
       var $input = $(this).wrap('<div class="checkbox"></div>');
@@ -544,13 +574,16 @@ var Tasks = (function () {
     });
   };
 
+
   $(window).bind('resize', function () {
     paneWidth = $('body').width();
   }).trigger('resize');
 
+
   $('#edittask_btn').bind('click', function (e) {
     $('#edit_task_form').trigger('submit');
   });
+
 
   $db.view('couchtasks/tags', {
     group: true,
