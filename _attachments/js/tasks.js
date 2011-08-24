@@ -35,45 +35,35 @@ var Tasks = (function () {
 
 
   router.get('#/add_server/', function () {
-    view('couchtasks/servers', {
-      success : function (data) {
-        servers = getValues(data.rows);
-        render('addserver_tpl', '#add_server', {servers:servers});
-      }
+    $db.view('couchtasks/servers').then(function (data) {
+      servers = getValues(data.rows);
+      render('addserver_tpl', '#add_server', {servers:servers});
     });
   });
 
 
   router.get('#/complete/', function (_, id) {
-
-    $db.view('couchtasks/complete', {
-      descending: true,
-      success : function (data) {
-        tasks = getValues(data.rows);
-        render('complete_tpl', '#complete_content', {notes:tasks}, initTasksList);
-      }
+    $db.view('couchtasks/complete', {descending: true}).then(function (data) {
+      tasks = getValues(data.rows);
+      render('complete_tpl', '#complete_content', {notes:tasks}, initTasksList);
     });
   });
 
 
   router.get('#/sync/', function (_, id) {
-    $db.view('couchtasks/servers', {
-      success : function (data) {
-        servers = getValues(data.rows);
-        render('sync_tpl', '#sync_content', {servers:servers});
-      }
+    $db.view('couchtasks/servers').then(function (data) {
+      servers = getValues(data.rows);
+      render('sync_tpl', '#sync_content', {servers:servers});
     });
   });
 
 
   router.get('#/task/:id/', function (_, id) {
-    $db.openDoc(id, {
-      success: function(doc) {
-        docs[doc._id] = doc;
-        doc.completed = doc.status === "complete" ? 'checked="checked"' : '';
-        doc.tags = doc.tags.join(' ');
-        render('task_tpl', null, doc);
-      }
+    $db.openDoc(id).then(function(doc) {
+      docs[doc._id] = doc;
+      doc.completed = doc.status === "complete" ? 'checked="checked"' : '';
+      doc.tags = doc.tags.join(' ');
+      render('task_tpl', null, doc);
     });
   });
 
