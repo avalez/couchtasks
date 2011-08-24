@@ -584,18 +584,14 @@ var Tasks = (function () {
     group: true,
     success: function(data) {
 
-      var colors = ["red", "green", "blue", "pink", "magenta", "orange"];
-      var tag, i = 0, css = [];
+      var colors = ['red', 'green', 'blue', 'pink', 'magenta', 'orange'];
+      var x, tag, i = 0, css = [];
       var style = document.createElement('style');
 
-      for (tag in data.rows) {
-        css.push(".tag_" +  data.rows[tag].key[0] +
-                 " { background: " + colors[i++] + " }");
-
-        tags.push({
-          tag: data.rows[tag].key[0],
-          count: data.rows[tag].value
-        });
+      for (x in data.rows) {
+        tag = data.rows[x].key[0]
+        css.push('.tag_' + tag + ' { background: ' + colors[i++] + ' }');
+        tags.push({tag: tag, count: data.rows[tag].value});
       }
 
       style.type = 'text/css';
