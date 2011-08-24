@@ -170,8 +170,6 @@ var Tasks = (function () {
 
 
   function addOrRemove(arr, key) {
-    console.log(arr);
-    console.log(key);
     if ($.inArray(key, arr) === -1) {
       arr.push(key);
     } else {
@@ -622,7 +620,15 @@ var Tasks = (function () {
 
   function startUpdater() {
     $changes = $db.changes();
-    $changes.onChange(function() {
+    $changes.onChange(function(changes) {
+
+      // Full refresh if design doc changes
+      for(var i in changes.results) {
+        if (/^_design/.test(changes.results[i].id)) {
+          document.location.reload();
+        }
+      }
+
       viewCache = {};
       router.refresh();
     });
