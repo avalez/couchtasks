@@ -120,10 +120,12 @@ var Tasks = (function () {
 
 
   function renderTasksList(tasks) {
-    var rendered = $(Mustache.to_html($("#rows_tpl").html(), {notes:tasks}));
+    var rendered = $('<div>' +
+                     Mustache.to_html($('#rows_tpl').html(), {notes:tasks})
+                     + '</div>');
     createCheckBox(rendered);
     initTasksList(rendered);
-    $("#notelist").empty().append(rendered);
+    $('#notelist').empty().append(rendered);
   }
 
 
