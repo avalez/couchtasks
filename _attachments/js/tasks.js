@@ -33,60 +33,6 @@ var Tasks = (function () {
   var lastPane = null;
   var $db = $.couch.db(mainDb);
 
-  var templates = {
-    addserver_tpl : {
-      transition: 'slideUp',
-      events: { '.deleteserver' : {'event': pressed, 'callback' : deleteServer},
-                'input' : {'event':'keyup', 'callback' : checkCanSaveServer}}
-    },
-    task_tpl : { transition: 'slideHorizontal' },
-    sync_tpl : {
-      transition: 'slideHorizontal',
-      events : {
-        '.sync' : {'event': pressed, 'callback' : doSync}
-      }
-    },
-    home_tpl : {
-      transition : 'slideHorizontal',
-      events : {
-        '.checker' : {'event': 'change', 'callback' : markDone},
-        '.task' : {'event': pressed, 'callback' : viewTask},
-        '.delete' : {'event': pressed, 'callback' : deleteTask}
-      },
-      init : function(dom) {
-
-        $('#edit_filter', dom).bind('mousedown', function() {
-          $('#filterui', dom).toggle();
-        });
-
-        $('#filterui', dom).bind('mousedown', function(e) {
-          if (e.target.nodeName === 'A') {
-            var args = $.grep(document.location.hash.replace('#/', '').split(','),
-                              function(x) { return x !== ''; });
-            addOrRemove(args, $(e.target).data('key'));
-          }
-        });
-
-        if (!isMobile) {
-          $('#notelist', dom).sortable({
-            items: 'li:not(.header)',
-            axis:'y',
-            distance:30,
-            start: function(event, ui) {
-              ui.item.attr('data-noclick','true');
-            },
-            stop: function(event, ui) {
-              var index = createIndex(ui.item);
-              if (index !== false) {
-                updateIndex(ui.item.attr('data-id'), index);
-              }
-            }
-          });
-        }
-      }
-    }
-  };
-
   function addOrRemove(arr, key) {
     if ($.inArray(key, arr) === -1) {
       arr.push(key);
@@ -99,8 +45,6 @@ var Tasks = (function () {
       document.location.hash = '#/' + arr.join(',');
     }
   }
-
-  templates.complete_tpl = templates.home_tpl;
 
   router.get('#/add_server/', function () {
     view('couchtasks/servers', {
@@ -143,6 +87,42 @@ var Tasks = (function () {
 
   router.get(/#\/?(.*)/, function (_, t) {
 
+    var init = function(dom) {
+
+      $('.checker', dom).bind('change', markDone);
+      $('.task', dom).bind(pressed, viewTask),
+      $('.delete', dom).bind(pressed, deleteTask);
+
+      $('#edit_filter', dom).bind('mousedown', function() {
+        $('#filterui', dom).toggle();
+      });
+
+      $('#filterui', dom).bind('mousedown', function(e) {
+        if (e.target.nodeName === 'A') {
+          var args = $.grep(document.location.hash.replace('#/', '').split(','),
+                            function(x) { return x !== ''; });
+          addOrRemove(args, $(e.target).data('key'));
+        }
+      });
+
+      if (!isMobile) {
+        $('#notelist', dom).sortable({
+          items: 'li:not(.header)',
+          axis:'y',
+          distance:30,
+          start: function(event, ui) {
+            ui.item.attr('data-noclick','true');
+          },
+          stop: function(event, ui) {
+            var index = createIndex(ui.item);
+            if (index !== false) {
+              updateIndex(ui.item.attr('data-id'), index);
+            }
+          }
+        });
+      }
+    }
+
     var tgs = $.grep((t || "").split(','), function(x) { return x !== ''; });
     var tagsObj = $.map($.extend(true, {}, tags), function(el) {
       if ($.inArray(el.tag, tgs) !== -1) {
@@ -160,7 +140,7 @@ var Tasks = (function () {
             usedTags: tgs,
             notes:tasks,
             tags:tagsObj
-          });
+          }, init);
         }
       });
     } else {
@@ -191,7 +171,7 @@ var Tasks = (function () {
           notes:tasks,
           tags:tagsObj,
           usedTags: tgs,
-        });
+        }, init);
       });
     }
   });
@@ -332,7 +312,7 @@ var Tasks = (function () {
     return arr;
   }
 
-  function render(tpl, dom, data) {
+  function render(tpl, dom, data, init) {
 
     data = data || {};
     $('body').removeClass(current_tpl).addClass(tpl);
@@ -341,19 +321,11 @@ var Tasks = (function () {
     $pane = $('<div class="pane"><div class="content">' + rendered + '</div></div>');
     createCheckBox($pane);
 
-    // Bind this templates events
-    var events = templates[tpl] && templates[tpl].events;
-    if (events) {
-      for (var key in events) {
-        $(key, $pane).bind(events[key].event + '.custom', events[key].callback);
-      }
+    if (init) {
+      init($pane);
     }
 
-    if (templates[tpl] && templates[tpl].init) {
-      templates[tpl].init($pane);
-    }
-
-    var transition = templates[tpl] && templates[tpl].transition;
+    var transition = 'slideHorizontal';
 
     if (transition === 'slideUp') {
 
@@ -591,7 +563,7 @@ var Tasks = (function () {
       for (x in data.rows) {
         tag = data.rows[x].key[0]
         css.push('.tag_' + tag + ' { background: ' + colors[i++] + ' }');
-        tags.push({tag: tag, count: data.rows[tag].value});
+        tags.push({tag: tag, count: data.rows[x].value});
       }
 
       style.type = 'text/css';
