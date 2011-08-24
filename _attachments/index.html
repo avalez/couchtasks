@@ -77,7 +77,7 @@
           <!-- <span class="arrow right">&rsaquo;</span> -->
         </li>
         {{/notes}}
-        {{^notes}}<li class="none">No Tasks</li>{{/notes}}
+        {{^notes}}<li class="none">Loading ...</li>{{/notes}}
       </ul>
     </script>
 
@@ -151,6 +151,19 @@
         {{/servers}}
         {{^servers}}<li class="none">No Servers</li>{{/servers}}
       </ul>
+    </script>
+
+    <script type="text/html" id="rows_tpl">
+      {{#notes}}
+      <li data-id="{{id}}" data-rev="{{rev}}" data-index="{{index}}" class="task">
+        <input class="checker" type="checkbox" />
+        <a class="title" href="#/task/{{id}}/">{{title}}</a>&nbsp;
+        {{#tags}}
+        <a class="tag tag_{{.}}" data-key="{{.}}">{{.}}</a>
+        {{/tags}}
+        <!-- <span class="arrow right">&rsaquo;</span> -->
+        </li>
+      {{/notes}}
     </script>
 
   </body>

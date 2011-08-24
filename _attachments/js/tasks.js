@@ -32,6 +32,7 @@ var Tasks = (function () {
   var $db = $.couch.db(mainDb);
   var $changes;
   var viewCache = {};
+  var current_tags = [];
 
 
   router.get('#/add_server/', function () {
@@ -69,24 +70,23 @@ var Tasks = (function () {
 
   router.get(/#\/?(.*)/, function (_, t) {
 
-    var tgs = $.grep((t || "").split(','), function(x) { return x !== ''; });
-    var tagsObj = $.map($.extend(true, {}, tags), function(el) {
-      if ($.inArray(el.tag, tgs) !== -1) {
-        el.class = 'active';
-      }
-      return el;
+    current_tags = $.grep((t || "").split(','), function(x) { return x !== ''; });
+
+    render('home_tpl', '#home_content', {usedTags: current_tags}).then(function() {
+      updateTaskList();
     });
 
+  });
+
+
+  function updateTaskList() {
+    tgs = current_tags;
     if (!tgs.length) {
       view('couchtasks/tasks', {
         descending: true,
         success : function (data) {
           tasks = getValues(data.rows);
-          render('home_tpl', '#home_content', {
-            usedTags: tgs,
-            notes:tasks,
-            tags:tagsObj
-          }, initTasksList);
+          renderTasksList(tasks);
         }
       });
     } else {
@@ -113,14 +113,18 @@ var Tasks = (function () {
             }
           });
         });
-        render('home_tpl', '#home_content', {
-          notes:tasks,
-          tags:tagsObj,
-          usedTags: tgs,
-        }, initTasksList);
+        renderTasksList(tasks);
       });
     }
-  });
+  }
+
+
+  function renderTasksList(tasks) {
+    var rendered = $(Mustache.to_html($("#rows_tpl").html(), {notes:tasks}));
+    createCheckBox(rendered);
+    initTasksList(rendered);
+    $("#notelist").empty().append(rendered);
+  }
 
 
   router.post('#edit', function (_, e, details) {
@@ -284,6 +288,7 @@ var Tasks = (function () {
 
   function render(tpl, dom, data, init) {
 
+    var dfd = $.Deferred();
     data = data || {};
     $('body').removeClass(current_tpl).addClass(tpl);
 
@@ -303,6 +308,7 @@ var Tasks = (function () {
         if (lastPane) {
           lastPane.hide();
         }
+        dfd.resolve();
       });
 
       slidePane = $pane.addClass('slidepane')
@@ -324,6 +330,7 @@ var Tasks = (function () {
       slidePane.one('webkitTransitionEnd transitionend', function() {
         slidePane.remove();
         slidePane = null;
+        dfd.resolve();
       });
 
     } else {
@@ -338,6 +345,7 @@ var Tasks = (function () {
           tmp.remove();
           tmp = null;
         }
+        dfd.resolve();
       });
 
       transformX($pane, currentOffset);
@@ -347,6 +355,8 @@ var Tasks = (function () {
       lastPane = $pane;
     }
     current_tpl = tpl;
+
+    return dfd.promise();
   }
 
 
@@ -620,7 +630,11 @@ var Tasks = (function () {
       }
 
       viewCache = {};
-      router.refresh();
+
+      if (/#\/?(.*)/.test("#" + document.location.hash)) {
+        updateTaskList();
+      }
+
     });
   }
 
