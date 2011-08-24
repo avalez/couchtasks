@@ -12,8 +12,6 @@ $.ajaxSetup({
   cache: false
 });
 
-// Doesnt handle ghosted events, will survive for now
-var pressed = Utils.isMobile() ? 'click' : 'click';
 
 var Tasks = (function () {
 
@@ -82,8 +80,8 @@ var Tasks = (function () {
     var init = function(dom) {
 
       $('.checker', dom).bind('change', markDone);
-      $('.task', dom).bind(pressed, viewTask),
-      $('.delete', dom).bind(pressed, deleteTask);
+      $('.task', dom).bind('click', viewTask),
+      $('.delete', dom).bind('click', deleteTask);
 
       $('#edit_filter', dom).bind('mousedown', function() {
         $('#filterui', dom).toggle();
@@ -567,7 +565,7 @@ var Tasks = (function () {
       if ($input.is(':checked')) {
         $wrapper.addClass('checked');
       }
-      $wrapper.bind(pressed, function(){
+      $wrapper.bind('click', function(){
         $wrapper.toggleClass('checked');
         $input.attr('checked', !$input.is(':checked')).change();
       });
