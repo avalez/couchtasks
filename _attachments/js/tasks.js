@@ -13,11 +13,11 @@ $.ajaxSetup({
 });
 
 // Doesnt handle ghosted events, will survive for now
-var pressed = Utils.isMobile() ? "click" : "click";
+var pressed = Utils.isMobile() ? 'click' : 'click';
 
 var Tasks = (function () {
 
-  var mainDb  = document.location.pathname.split("/")[1];
+  var mainDb  = document.location.pathname.split('/')[1];
   var paneWidth = 0;
   var isMobile = Utils.isMobile();
   var router  = Router();
@@ -35,19 +35,19 @@ var Tasks = (function () {
 
   var templates = {
     addserver_tpl : {
-      transition: "slideUp",
+      transition: 'slideUp',
       events: { '.deleteserver' : {'event': pressed, 'callback' : deleteServer},
-                'input' : {'event':"keyup", 'callback' : checkCanSaveServer}}
+                'input' : {'event':'keyup', 'callback' : checkCanSaveServer}}
     },
-    task_tpl : { transition: "slideHorizontal" },
+    task_tpl : { transition: 'slideHorizontal' },
     sync_tpl : {
-      transition: "slideHorizontal",
+      transition: 'slideHorizontal',
       events : {
         '.sync' : {'event': pressed, 'callback' : doSync}
       }
     },
     home_tpl : {
-      transition : "slideHorizontal",
+      transition : 'slideHorizontal',
       events : {
         '.checker' : {'event': 'change', 'callback' : markDone},
         '.task' : {'event': pressed, 'callback' : viewTask},
@@ -55,30 +55,30 @@ var Tasks = (function () {
       },
       init : function(dom) {
 
-        $("#edit_filter", dom).bind('mousedown', function() {
+        $('#edit_filter', dom).bind('mousedown', function() {
           $('#filterui', dom).toggle();
         });
 
-        $("#filterui", dom).bind('mousedown', function(e) {
+        $('#filterui', dom).bind('mousedown', function(e) {
           if (e.target.nodeName === 'A') {
-            var args = $.grep(document.location.hash.replace("#/", "").split(","),
-                              function(x) { return x !== ""; });
-            addOrRemove(args, $(e.target).data("key"));
+            var args = $.grep(document.location.hash.replace('#/', '').split(','),
+                              function(x) { return x !== ''; });
+            addOrRemove(args, $(e.target).data('key'));
           }
         });
 
         if (!isMobile) {
-          $("#notelist", dom).sortable({
-            items: "li:not(.header)",
+          $('#notelist', dom).sortable({
+            items: 'li:not(.header)',
             axis:'y',
             distance:30,
             start: function(event, ui) {
-              ui.item.attr("data-noclick","true");
+              ui.item.attr('data-noclick','true');
             },
             stop: function(event, ui) {
               var index = createIndex(ui.item);
               if (index !== false) {
-                updateIndex(ui.item.attr("data-id"), index);
+                updateIndex(ui.item.attr('data-id'), index);
               }
             }
           });
@@ -94,9 +94,9 @@ var Tasks = (function () {
       arr = $.grep(arr, function(x) { return x !== key; });
     }
     if (arr.length === 0) {
-      document.location.hash = "#/";
+      document.location.hash = '#/';
     } else {
-      document.location.hash = "#/" + arr.join(",");
+      document.location.hash = '#/' + arr.join(',');
     }
   }
 
@@ -106,7 +106,7 @@ var Tasks = (function () {
     view('couchtasks/servers', {
       success : function (data) {
         servers = getValues(data.rows);
-        render('!/add_server/', "addserver_tpl", "#add_server", {servers:servers});
+        render('!/add_server/', 'addserver_tpl', '#add_server', {servers:servers});
       }
     });
   });
@@ -116,7 +116,7 @@ var Tasks = (function () {
       descending: true,
       success : function (data) {
         tasks = getValues(data.rows);
-        render('!/complete/', "complete_tpl", "#complete_content", {notes:tasks});
+        render('!/complete/', 'complete_tpl', '#complete_content', {notes:tasks});
       }
     });
   });
@@ -125,7 +125,7 @@ var Tasks = (function () {
     $db.view('couchtasks/servers', {
       success : function (data) {
         servers = getValues(data.rows);
-        render('!/sync/', "sync_tpl", "#sync_content", {servers:servers});
+        render('!/sync/', 'sync_tpl', '#sync_content', {servers:servers});
       }
     });
   });
@@ -134,19 +134,19 @@ var Tasks = (function () {
     $db.openDoc(id, {
       success: function(doc) {
         docs[doc._id] = doc;
-        doc.completed = doc.status === "complete" ? "checked='checked'" : "";
-        doc.tags = doc.tags.join(" ");
-        render('/task/:id/', "task_tpl", null, doc);
+        doc.completed = doc.status === "complete" ? 'checked="checked"' : '';
+        doc.tags = doc.tags.join(' ');
+        render('/task/:id/', 'task_tpl', null, doc);
       }
     });
   });
 
   router.get(/#\/?(.*)/, function (_, t) {
 
-    var tgs = $.grep((t || "").split(","), function(x) { return x !== ""; });
+    var tgs = $.grep((t || "").split(','), function(x) { return x !== ''; });
     var tagsObj = $.map($.extend(true, {}, tags), function(el) {
       if ($.inArray(el.tag, tgs) !== -1) {
-        el.class = "active";
+        el.class = 'active';
       }
       return el;
     });
@@ -156,7 +156,7 @@ var Tasks = (function () {
         descending: true,
         success : function (data) {
           tasks = getValues(data.rows);
-          render('#/:tags', "home_tpl", "#home_content", {
+          render('#/:tags', 'home_tpl', '#home_content', {
             usedTags: tgs,
             notes:tasks,
             tags:tagsObj
@@ -187,7 +187,7 @@ var Tasks = (function () {
             }
           });
         });
-        render('#/:tags', "home_tpl", "#home_content", {
+        render('#/:tags', 'home_tpl', '#home_content', {
           notes:tasks,
           tags:tagsObj,
           usedTags: tgs,
@@ -219,37 +219,39 @@ var Tasks = (function () {
     var doc = docs[details.id];
     doc.tags = details.tags.split(" ");
     doc.notes = details.notes;
-    doc.status = details.completed && details.completed === "on" ?
-      "complete" : "active";
-    $db.saveDoc(doc, {"success": function () {
-      viewCache = {};
-      router.back();
-    }});
+    doc.status = details.completed && details.completed === 'on' ?
+      'complete' : 'active';
+    $db.saveDoc(doc, {
+      success: function () {
+        viewCache = {};
+        router.back();
+      }});
   });
 
   router.post('#add_server', function (_, e, details) {
     if (details.server === "") {
-      $("input[name=server]").addClass("formerror");
+      $('input[name=server]').addClass('formerror');
       return;
     }
-    details.type = "server";
-    $db.saveDoc(details, {"success": function () {
-      viewCache = {};
-      router.back();
-    }});
+    details.type = 'server';
+    $db.saveDoc(details, {
+      success: function () {
+        viewCache = {};
+        router.back();
+      }});
   });
 
   router.post('#add_task', function (_, e, details) {
-    newTask(details.title, "", "", function (data) {
+    newTask(details.title, '', '', function (data) {
       console.log(data);
       viewCache = {};
-      document.location = "#/task/" + data.id + "/";
+      document.location = '#/task/' + data.id + '/';
     });
   });
 
   var viewCache = {};
   function view(name, options) {
-    if (typeof viewCache[name] === "undefined") {
+    if (typeof viewCache[name] === 'undefined') {
       var success = options.success;
       options.success = function (data) {
         viewCache[name] = data;
@@ -264,41 +266,42 @@ var Tasks = (function () {
   function markDone(e) {
 
     var status = {
-      "home_tpl": {"checked": "complete", "unchecked": "active"},
-      "complete_tpl": {"checked": "active", "unchecked": "complete"}
+      home_tpl: {checked: 'complete', unchecked: 'active'},
+      complete_tpl: {checked: 'active', unchecked: 'complete'}
     };
 
-    var cur_status = status[current_tpl][$(this).is(":checked") ? "checked" : "unchecked"],
-    li = $(e.target).parents("li"),
-    id = li.attr("data-id"),
-    url = "/" + mainDb + "/_design/couchtasks/_update/update_status/" + id +
-      "?status=" + cur_status;
+    var cur_status = status[current_tpl][$(this).is(':checked')
+                                         ? 'checked' : 'unchecked'];
+    var li = $(e.target).parents("li");
+    var id = li.attr("data-id");
+    var url = '/' + mainDb + '/_design/couchtasks/_update/update_status/' + id +
+      '?status=' + cur_status;
 
     $.ajax({
       url: url,
-      type: "PUT",
-        contentType:"application/json",
-        datatype:"json",
-        success: function() {
-          viewCache = {};
-          if (cur_status === "complete" && current_tpl === "home_tpl" ||
-              cur_status === "active" && current_tpl === "complete_tpl") {
-            li.addClass("deleted");
-          } else {
-            li.removeClass("deleted");
-          }
+      type: 'PUT',
+      contentType:'application/json',
+      datatype: 'json',
+      success: function() {
+        viewCache = {};
+        if (cur_status === 'complete' && current_tpl === 'home_tpl' ||
+            cur_status === 'active' && current_tpl === 'complete_tpl') {
+          li.addClass('deleted');
+        } else {
+          li.removeClass('deleted');
         }
+      }
     });
   }
 
   function updateIndex(id, index) {
-    var url = "/" + mainDb + "/_design/couchtasks/_update/update_index/" + id +
-      "?index=" + index;
+    var url = '/' + mainDb + '/_design/couchtasks/_update/update_index/' + id +
+      '?index=' + index;
     $.ajax({
       url: url,
-      type: "PUT",
-      contentType:"application/json",
-      datatype:"json",
+      type: 'PUT',
+      contentType: 'application/json',
+      datatype: 'json',
       success: function() {
         viewCache = {};
       }
@@ -307,18 +310,18 @@ var Tasks = (function () {
 
   function createIndex(el) {
 
-    var before = el.prev("li.task"),
-        after = el.next("li.task");
+    var before = el.prev('li.task');
+    var after = el.next('li.task');
 
     if (before.length === 0 && after.length === 0) {
       return false;
     } else if (before.length === 0) {
-      return parseInt(after.attr("data-index"), 10) + 1;
+      return parseInt(after.attr('data-index'), 10) + 1;
     } else if (after.length === 0) {
-      return parseInt(before.attr("data-index"), 10) - 1;
+      return parseInt(before.attr('data-index'), 10) - 1;
     } else {
-      return (parseInt(before.attr("data-index"), 10) +
-              parseInt(after.attr("data-index"), 10)) / 2;
+      return (parseInt(before.attr('data-index'), 10) +
+              parseInt(after.attr('data-index'), 10)) / 2;
     }
   }
 
@@ -333,17 +336,17 @@ var Tasks = (function () {
   function render(url, tpl, dom, data) {
 
     data = data || {};
-    $("body").removeClass(current_tpl).addClass(tpl);
+    $('body').removeClass(current_tpl).addClass(tpl);
 
     var rendered = Mustache.to_html($("#" + tpl).html(), data),
-    $pane = $("<div class='pane'><div class='content'>" + rendered + "</div></div>");
+    $pane = $('<div class="pane"><div class="content">' + rendered + '</div></div>');
     createCheckBox($pane);
 
     // Bind this templates events
     var events = templates[tpl] && templates[tpl].events;
     if (events) {
       for (var key in events) {
-        $(key, $pane).bind(events[key].event + ".custom", events[key].callback);
+        $(key, $pane).bind(events[key].event + '.custom', events[key].callback);
       }
     }
 
@@ -355,15 +358,15 @@ var Tasks = (function () {
 
     if (transition === 'slideUp') {
 
-      $("#content").one("webkitTransitionEnd transitionend", function() {
+      $('#content').one('webkitTransitionEnd transitionend', function() {
         if (lastPane) {
           lastPane.hide();
         }
       });
 
-      slidePane = $pane.addClass("slidepane")
+      slidePane = $pane.addClass('slidepane')
         .css({left:currentOffset, top:-$(window).height(), 'z-index': 3})
-        .appendTo("#content");
+        .appendTo('#content');
       transformY(slidePane, $(window).height() + 50);
 
     } else if (slidePane) {
@@ -373,11 +376,11 @@ var Tasks = (function () {
         lastPane = null;
       }
 
-      $pane.css({"left":currentOffset}).appendTo($("#content"));
+      $pane.css({left: currentOffset}).appendTo($('#content'));
       transformY(slidePane, 0);
       lastPane = $pane;
 
-      slidePane.one("webkitTransitionEnd transitionend", function() {
+      slidePane.one('webkitTransitionEnd transitionend', function() {
         slidePane.remove();
         slidePane = null;
       });
@@ -389,7 +392,7 @@ var Tasks = (function () {
       }
 
       var tmp = lastPane;
-      $("#content").one("webkitTransitionEnd transitionend", function() {
+      $('#content').one('webkitTransitionEnd transitionend', function() {
         if (tmp) {
           tmp.remove();
           tmp = null;
@@ -397,37 +400,37 @@ var Tasks = (function () {
       });
 
       transformX($pane, currentOffset);
-      $pane.appendTo($("#content"));
+      $pane.appendTo($('#content'));
 
-      transformX($("#content"), -currentOffset);
+      transformX($('#content'), -currentOffset);
       lastPane = $pane;
     }
     current_tpl = tpl;
   }
 
   function transformY(dom, x) {
-    dom.css("-moz-transform", "translate(0, " + x + "px)")
-      .css("-webkit-transform", "translate(0, " + x + "px)");
+    dom.css('-moz-transform', 'translate(0, ' + x + 'px)')
+      .css('-webkit-transform', 'translate(0, ' + x + 'px)');
   }
 
   function transformX(dom, x) {
-    dom.css("-moz-transform", "translate(" + x + "px, 0)")
-      .css("-webkit-transform", "translate(" + x + "px, 0)");
+    dom.css('-moz-transform', 'translate(' + x + 'px, 0)')
+      .css('-webkit-transform', 'translate(' + x + 'px, 0)');
   }
 
   function checkCanSaveNote(e) {
-    if ($("input[name=title]").val() === "") {
-      $("#createtask_btn").removeClass("active");
+    if ($('input[name=title]').val() === '') {
+      $('#createtask_btn').removeClass('active');
     } else {
-      $("#createtask_btn").addClass("active");
+      $('#createtask_btn').addClass('active');
     }
   }
 
   function checkCanSaveServer(e) {
-    if ($("input[name=server]").val() === "") {
-      $("#createserver_btn").removeClass("active");
+    if ($('input[name=server]').val() === '') {
+      $('#createserver_btn').removeClass('active');
     } else {
-      $("#createserver_btn").addClass("active");
+      $('#createserver_btn').addClass('active');
     }
   }
 
@@ -447,22 +450,22 @@ var Tasks = (function () {
 
   function newTask(title, notes, tags, callback) {
 
-    if(title === "") {
-      $("input[name=title]").addClass("formerror");
+    if(title === '') {
+      $('input[name=title]').addClass('formerror');
       return;
     }
 
     // wont order correctly if /add_task/ is accessed directly
     var index = tasks.length > 0 ? tasks[0].index + 1 : 1;
     $db.saveDoc({
-      "type":"task",
+      type: 'task',
       index: index,
-      "status":"active",
-      "title":title,
-      "tags":tags.split(" "),
-      "notes":notes
+      status: 'active',
+      title: title,
+      tags: tags.split(' '),
+      notes: notes
     }, {
-      "success": function (data) {
+      success: function (data) {
         callback(data);
       }
     });
@@ -473,19 +476,19 @@ var Tasks = (function () {
       url: "/_replicate",
       type: 'POST',
       data: JSON.stringify(obj),
-      contentType : "application/json",
-      dataType : "json",
+      contentType : 'application/json',
+      dataType : 'json',
       success: callbacks.success,
       error: callbacks.error
     });
   }
 
   function createUrl(username, password, server, database) {
-    if (username === "") {
-      return "http://" + server + "/" + database;
+    if (username === '') {
+      return 'http://' + server + '/' + database;
     } else {
-      return "http://" + username + ":" + password + "@" +
-        server + "/" + database;
+      return 'http://' + username + ':' + password + '@' +
+        server + '/' + database;
     }
   }
 
@@ -494,47 +497,47 @@ var Tasks = (function () {
       $(this).removeAttr("data-noclick");
       return;
     }
-    if (!$(e.target).is("li.task") && e.target.nodeName !== 'SPAN') {
+    if (!$(e.target).is('li.task') && e.target.nodeName !== 'SPAN') {
       return;
     }
-    document.location.href = "#/task/" + $(this).attr("data-id") + "/";
+    document.location.href = '#/task/' + $(this).attr('data-id') + '/';
   }
 
   function doSync(e) {
 
-    var li = $(e.target).parents("li").addClass("syncing"),
-    server = li.attr("data-server"),
-    database = li.attr("data-database"),
-    user = li.attr("data-username"),
-    pass = li.attr("data-password");
+    var li = $(e.target).parents('li').addClass('syncing');
+    var server = li.attr('data-server');
+    var database = li.attr('data-database');
+    var user = li.attr('data-username');
+    var pass = li.attr('data-password');
 
     var error = function() {
-      $("#feedback").addClass("error").text("Sync Failed!").show();
-      li.removeClass("syncing");
+      $('#feedback').addClass('error').text('Sync Failed!').show();
+      li.removeClass('syncing');
     };
 
     doReplication({
-      create_target:true,
-      filter: "couchtasks/taskfilter",
-      target : createUrl(user, pass, server, database),
-      source : mainDb
+      create_target: true,
+      filter: 'couchtasks/taskfilter',
+      target: createUrl(user, pass, server, database),
+      source: mainDb
     }, {
-      "success" : function() {
+      success : function() {
         doReplication({
-          filter: "couchtasks/taskfilter",
-          target : mainDb,
-          source : createUrl(user, pass, server, database)
-        }, { "success" : function () {
-          $("#feedback").addClass("success").text("Sync Complete!").show();
-          li.removeClass("syncing");
+          filter: 'couchtasks/taskfilter',
+          target: mainDb,
+          source: createUrl(user, pass, server, database)
+        }, { success : function () {
+          $('#feedback').addClass('success').text('Sync Complete!').show();
+          li.removeClass('syncing');
         }, error: error})
       }, error: error});
   }
 
   function deleteServer(e) {
     e.preventDefault();
-    var li = $(e.target).parents("li");
-    $db.removeDoc({_id: li.attr("data-id"), _rev: li.attr("data-rev")}, {
+    var li = $(e.target).parents('li');
+    $db.removeDoc({_id: li.attr('data-id'), _rev: li.attr('data-rev')}, {
       success: function() {
         viewCache = {};
         li.remove();
@@ -545,11 +548,11 @@ var Tasks = (function () {
   function deleteTask(e) {
     e.preventDefault();
     $(e.target).css({opacity:1});
-    var li = $(e.target).parents("li");
-    $db.removeDoc({_id: li.attr("data-id"), _rev: li.attr("data-rev")}, {
+    var li = $(e.target).parents('li');
+    $db.removeDoc({_id: li.attr('data-id'), _rev: li.attr('data-rev')}, {
       success: function() {
         viewCache = {};
-        li.fadeOut("medium", function () {
+        li.fadeOut('medium', function () {
           li.remove();
         });
       }
@@ -557,50 +560,44 @@ var Tasks = (function () {
   }
 
   function createCheckBox(parent) {
-    $("input[type=checkbox]", parent).each(function() {
-      var $input = $(this).wrap("<div class='checkbox'></div>");
-      var $wrapper = $(this).parent(".checkbox").append("<div />");
-      if ($input.is(":checked")) {
-        $wrapper.addClass("checked");
+    $('input[type=checkbox]', parent).each(function() {
+      var $input = $(this).wrap('<div class="checkbox"></div>');
+      var $wrapper = $(this).parent(".checkbox").append('<div />');
+      if ($input.is(':checked')) {
+        $wrapper.addClass('checked');
       }
       $wrapper.bind(pressed, function(){
-        $wrapper.toggleClass("checked");
-        $input.attr("checked", !$input.is(":checked")).change();
+        $wrapper.toggleClass('checked');
+        $input.attr('checked', !$input.is(':checked')).change();
       });
     });
   };
 
-  $("#edittask_btn").bind("click", function (e) {
-    $("#edit_task_form").trigger("submit");
-  });
+  $(window).bind('resize', function () {
+    paneWidth = $('body').width();
+  }).trigger('resize');
 
-  $("#createserver_btn").bind("click", function (e) {
-    $("#syncform").trigger("submit");
-  });
 
-  $("#createtask_btn").bind("click", function (e) {
-    $("#add_task_frm").trigger("submit");
-  });
-
-  $(window).bind("resize", function () {
-    paneWidth = $("body").width();
-  });
-  $(window).resize();
-
-  $db.view("couchtasks/tags", {
+  $db.view('couchtasks/tags', {
     group: true,
     success: function(data) {
 
       var colors = ["red", "green", "blue", "pink", "magenta", "orange"];
-      var i = 0, css = [];
-      for (var tag in data.rows) {
-        css.push(".tag_" +  data.rows[tag].key[0] + " { background: " + colors[i++] + " }");
-        tags.push({"tag": data.rows[tag].key[0], "count":data.rows[tag].value});
+      var tag, i = 0, css = [];
+      var style = document.createElement('style');
+
+      for (tag in data.rows) {
+        css.push(".tag_" +  data.rows[tag].key[0] +
+                 " { background: " + colors[i++] + " }");
+
+        tags.push({
+          tag: data.rows[tag].key[0],
+          count: data.rows[tag].value
+        });
       }
 
-      var style = document.createElement('style');
       style.type = 'text/css';
-      style.innerHTML = css.join("\n");
+      style.innerHTML = css.join('\n');
       document.getElementsByTagName('head')[0].appendChild(style);
       router.init(window);
     }
