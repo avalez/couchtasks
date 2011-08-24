@@ -45,11 +45,12 @@ var Tasks = (function () {
 
 
   router.get('#/complete/', function (_, id) {
+
     $db.view('couchtasks/complete', {
       descending: true,
       success : function (data) {
         tasks = getValues(data.rows);
-        render('complete_tpl', '#complete_content', {notes:tasks});
+        render('complete_tpl', '#complete_content', {notes:tasks}, initTasksList);
       }
     });
   });
@@ -78,54 +79,6 @@ var Tasks = (function () {
 
   router.get(/#\/?(.*)/, function (_, t) {
 
-    var params = $.grep(document.location.hash.replace('#/', '').split(','),
-                      function(x) { return x !== ''; });
-
-    var init = function(dom) {
-
-      $('.checker', dom).bind('change', markDone);
-      $('.delete', dom).bind('click', deleteTask);
-
-      $('.task', dom).bind('click', function(e) {
-        if ($(e.target).is("a.tag")) {
-          addOrRemove(params, $(e.target).data('key'));
-        }
-      }),
-
-      $('#hdr', dom).bind('click', function(e) {
-        if ($(e.target).is("a.tag")) {
-          addOrRemove(params, $(e.target).data('key'));
-        }
-      }),
-
-      $('#edit_filter', dom).bind('mousedown', function() {
-        $('#filterui', dom).toggle();
-      });
-
-      $('#filterui', dom).bind('mousedown', function(e) {
-        if (e.target.nodeName === 'A') {
-          addOrRemove(params, $(e.target).data('key'));
-        }
-      });
-
-      if (!isMobile) {
-        $('#notelist', dom).sortable({
-          items: 'li:not(.header)',
-          axis:'y',
-          distance:30,
-          start: function(event, ui) {
-            ui.item.attr('data-noclick','true');
-          },
-          stop: function(event, ui) {
-            var index = createIndex(ui.item);
-            if (index !== false) {
-              updateIndex(ui.item.attr('data-id'), index);
-            }
-          }
-        });
-      }
-    }
-
     var tgs = $.grep((t || "").split(','), function(x) { return x !== ''; });
     var tagsObj = $.map($.extend(true, {}, tags), function(el) {
       if ($.inArray(el.tag, tgs) !== -1) {
@@ -143,7 +96,7 @@ var Tasks = (function () {
             usedTags: tgs,
             notes:tasks,
             tags:tagsObj
-          }, init);
+          }, initTasksList);
         }
       });
     } else {
@@ -174,7 +127,7 @@ var Tasks = (function () {
           notes:tasks,
           tags:tagsObj,
           usedTags: tgs,
-        }, init);
+        }, initTasksList);
       });
     }
   });
@@ -587,6 +540,54 @@ var Tasks = (function () {
     });
   };
 
+
+  function initTasksList(dom) {
+
+    var params = $.grep(document.location.hash.replace('#/', '').split(','),
+                        function(x) { return x !== ''; });
+
+    $('.checker', dom).bind('change', markDone);
+    $('.delete', dom).bind('click', deleteTask);
+
+    $('.task', dom).bind('click', function(e) {
+      if ($(e.target).is("a.tag")) {
+        addOrRemove(params, $(e.target).data('key'));
+      }
+    }),
+
+    $('#hdr', dom).bind('click', function(e) {
+      if ($(e.target).is("a.tag")) {
+        addOrRemove(params, $(e.target).data('key'));
+      }
+    }),
+
+    $('#edit_filter', dom).bind('mousedown', function() {
+      $('#filterui', dom).toggle();
+    });
+
+    $('#filterui', dom).bind('mousedown', function(e) {
+      if (e.target.nodeName === 'A') {
+        addOrRemove(params, $(e.target).data('key'));
+      }
+    });
+
+    if (!isMobile) {
+      $('#notelist', dom).sortable({
+        items: 'li:not(.header)',
+        axis:'y',
+        distance:30,
+        start: function(event, ui) {
+          ui.item.attr('data-noclick','true');
+        },
+        stop: function(event, ui) {
+          var index = createIndex(ui.item);
+          if (index !== false) {
+            updateIndex(ui.item.attr('data-id'), index);
+          }
+        }
+      });
+    }
+  }
 
   $(window).bind('resize', function () {
     paneWidth = $('body').width();
