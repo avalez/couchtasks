@@ -16,16 +16,16 @@
     <div id="content"></div>
 
     <footer>
-      <a href="#!" class="home"></a>
-      <a href="#!/complete/" class="archive"></a>
-      <a href="#!/sync/" class="cloud"></a>
+      <a href="#" class="home"></a>
+      <a href="#/complete/" class="archive"></a>
+      <a href="#/sync/" class="cloud"></a>
 
-      <a href="#!/add_task/" id="add"></a>
-      <a href="#!/add_server/" id="add_serverbtn"></a>
+      <!-- <a href="#/add_task/" id="add"></a> -->
+      <!-- <a href="#/add_server/" id="add_serverbtn"></a> -->
 
-      <a id="createtask_btn" class="plain_btn">Create</a>
+      <!-- <a id="createtask_btn" class="plain_btn">Create</a> -->
       <a id="edittask_btn" class="plain_btn active">Save</a>
-      <a id="createserver_btn" class="plain_btn">Create</a>
+      <!-- <a id="createserver_btn" class="plain_btn">Create</a> -->
 
     </footer>
 
@@ -42,13 +42,39 @@
     </script>
 
     <script type="text/html" id="home_tpl">
+
+      <div id="hdr">
+        {{#usedTags}}
+        <span class="tag tag_{{.}}">{{.}}</span>
+        {{/usedTags}}
+      </div>
+
+      <form action="#add_task" id="add_task_frm">
+        <fieldset>
+          <input type="text" name="title" id="add_task_input"
+                 placeholder="Add Task" required />
+        </fieldset>
+      </form>
+
+      <!-- <a id="edit_filter">filters</a> -->
+
+      <div id="filterui">
+        <ul class="tags">
+          {{#tags}}
+          <li class="{{class}}"><a data-key="{{tag}}">{{tag}}({{count}})</a></li>
+          {{/tags}}
+        </ul>
+      </div>
+
       <ul id="notelist">
-        <li class="header"><h3>Tasks</h3></li>
         {{#notes}}
         <li data-id="{{id}}" data-rev="{{rev}}" data-index="{{index}}" class="task">
           <input class="checker" type="checkbox" />
           <span class="title">{{title}}</span>&nbsp;
-          <span class="arrow right">&rsaquo;</span>
+          {{#tags}}
+          <span class="tag tag_{{.}}">{{.}}</span>
+          {{/tags}}
+          <!-- <span class="arrow right">&rsaquo;</span> -->
         </li>
         {{/notes}}
         {{^notes}}<li class="none">No Tasks</li>{{/notes}}
@@ -133,6 +159,8 @@
 
   <script src="./js/jquery-ui-1.8.10.custom.min.js"></script>
   <script src="./js/jquery.couch.js"></script>
+
+  <script src="./js/router.js"></script>
 
   <script src="./js/mustache.js"></script>
   <script src="./js/utils.js"></script>

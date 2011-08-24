@@ -4,6 +4,7 @@ function(doc) {
       index: doc.index || 0,
       title:doc.title,
       rev:doc._rev,
+      tags: doc.tags,
       id:doc._id
     });
   }

@@ -54,24 +54,6 @@
   /**
    * @private
    */
-  function prepareUserDoc(user_doc, new_password) {
-    if (typeof hex_sha1 == "undefined") {
-      alert("creating a user doc requires sha1.js to be loaded in the page");
-      return;
-    }
-    var user_prefix = "org.couchdb.user:";
-    user_doc._id = user_doc._id || user_prefix + user_doc.name;
-    if (new_password) {
-      // handle the password crypto
-      user_doc.salt = $.couch.newUUID();
-      user_doc.password_sha = hex_sha1(new_password + user_doc.salt);
-    }
-    user_doc.type = "user";
-    if (!user_doc.roles) {
-      user_doc.roles = [];
-    }
-    return user_doc;
-  }
 
   var uuidCache = [];
 
@@ -89,7 +71,7 @@
      * /#jQuery-ajax-settings">jQuery ajax settings</a>
      */
     activeTasks: function(options) {
-      ajax(
+      return ajax(
         {url: this.urlPrefix + "/_active_tasks"},
         options,
         "Active task status could not be retrieved"
@@ -105,7 +87,7 @@
      * /#jQuery-ajax-settings">jQuery ajax settings</a>
      */
     allDbs: function(options) {
-      ajax(
+      return ajax(
         {url: this.urlPrefix + "/_all_dbs"},
         options,
         "An error occurred retrieving the list of all databases"
@@ -144,7 +126,7 @@
         req.processData = false
       }
 
-      ajax(req, options,
+      return ajax(req, options,
         "An error occurred retrieving/updating the server configuration"
       );
     },
@@ -157,13 +139,13 @@
      */
     session: function(options) {
       options = options || {};
-      $.ajax({
+      return $.ajax({
         type: "GET", url: this.urlPrefix + "/_session",
         beforeSend: function(xhr) {
             xhr.setRequestHeader('Accept', 'application/json');
         },
         complete: function(req) {
-          var resp = httpData(req, "json");
+          var resp = $.parseJSON(req.responseText);
           if (req.status == 200) {
             if (options.success) options.success(resp);
           } else if (options.error) {
@@ -179,7 +161,7 @@
      * @private
      */
     userDb : function(callback) {
-      $.couch.session({
+      return $.couch.session({
         success : function(resp) {
           var userDb = $.couch.db(resp.info.authentication_db);
           callback(userDb);
@@ -201,10 +183,34 @@
     signup: function(user_doc, password, options) {
       options = options || {};
       // prepare user doc based on name and password
-      user_doc = prepareUserDoc(user_doc, password);
-      $.couch.userDb(function(db) {
+      user_doc = this.prepareUserDoc(user_doc, password);
+      return $.couch.userDb(function(db) {
         db.saveDoc(user_doc, options);
       });
+    },
+
+    /**
+     * Populates a user doc with a new password.
+     * @param {Object} user_doc User details
+     * @param {String} new_password New Password
+     */
+    prepareUserDoc: function(user_doc, new_password) {
+      if (typeof hex_sha1 == "undefined") {
+        alert("creating a user doc requires sha1.js to be loaded in the page");
+        return;
+      }
+      var user_prefix = "org.couchdb.user:";
+      user_doc._id = user_doc._id || user_prefix + user_doc.name;
+      if (new_password) {
+        // handle the password crypto
+        user_doc.salt = $.couch.newUUID();
+        user_doc.password_sha = hex_sha1(new_password + user_doc.salt);
+      }
+      user_doc.type = "user";
+      if (!user_doc.roles) {
+        user_doc.roles = [];
+      }
+      return user_doc;
     },
 
     /**
@@ -216,14 +222,14 @@
      */
     login: function(options) {
       options = options || {};
-      $.ajax({
+      return $.ajax({
         type: "POST", url: this.urlPrefix + "/_session", dataType: "json",
         data: {name: options.name, password: options.password},
         beforeSend: function(xhr) {
             xhr.setRequestHeader('Accept', 'application/json');
         },
         complete: function(req) {
-          var resp = httpData(req, "json");
+          var resp = $.parseJSON(req.responseText);
           if (req.status == 200) {
             if (options.success) options.success(resp);
           } else if (options.error) {
@@ -244,14 +250,14 @@
      */
     logout: function(options) {
       options = options || {};
-      $.ajax({
+      return $.ajax({
         type: "DELETE", url: this.urlPrefix + "/_session", dataType: "json",
         username : "_", password : "_",
         beforeSend: function(xhr) {
             xhr.setRequestHeader('Accept', 'application/json');
         },
         complete: function(req) {
-          var resp = httpData(req, "json");
+          var resp = $.parseJSON(req.responseText);
           if (req.status == 200) {
             if (options.success) options.success(resp);
           } else if (options.error) {
@@ -310,7 +316,7 @@
          */
         compact: function(options) {
           $.extend(options, {successStatus: 202});
-          ajax({
+          return ajax({
               type: "POST", url: this.uri + "_compact",
               data: "", processData: false
             },
@@ -329,7 +335,7 @@
          */
         viewCleanup: function(options) {
           $.extend(options, {successStatus: 202});
-          ajax({
+          return ajax({
               type: "POST", url: this.uri + "_view_cleanup",
               data: "", processData: false
             },
@@ -352,7 +358,7 @@
          */
         compactView: function(groupname, options) {
           $.extend(options, {successStatus: 202});
-          ajax({
+          return ajax({
               type: "POST", url: this.uri + "_compact/" + groupname,
               data: "", processData: false
             },
@@ -371,7 +377,7 @@
          */
         create: function(options) {
           $.extend(options, {successStatus: 201});
-          ajax({
+          return ajax({
               type: "PUT", url: this.uri, contentType: "application/json",
               data: "", processData: false
             },
@@ -390,7 +396,7 @@
          * jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
          */
         drop: function(options) {
-          ajax(
+          return ajax(
             {type: "DELETE", url: this.uri},
             options,
             "The database could not be deleted"
@@ -406,7 +412,7 @@
          * jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
          */
         info: function(options) {
-          ajax(
+          return ajax(
             {url: this.uri},
             options,
             "Database information could not be retrieved"
@@ -439,16 +445,16 @@
                * @param {Function} fun Callback function to run when
                * notified of changes.
                */
-              onChange : function(fun) {
-                listeners.push(fun);
-              },
+            onChange : function(fun) {
+              listeners.push(fun);
+            },
               /**
                * Stop subscribing to the changes feed
                */
-              stop : function() {
-                active = false;
-              }
-            };
+            stop : function() {
+              active = false;
+            }
+          };
           // call each listener when there is a change
           function triggerListeners(resp) {
             $.each(listeners, function() {
@@ -517,7 +523,7 @@
             delete options["keys"];
             data = toJSON({ "keys": keys });
           }
-          ajax({
+          return ajax({
               type: type,
               data: data,
               url: this.uri + "_all_docs" + encodeOptions(options)
@@ -533,7 +539,7 @@
          * jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
          */
         allDesignDocs: function(options) {
-          this.allDocs($.extend(
+          return this.allDocs($.extend(
             {startkey:"_design", endkey:"_design0"}, options));
         },
 
@@ -608,7 +614,7 @@
               }
             });
           }
-          ajax({url: this.uri + encodeDocId(docId) + encodeOptions(options)},
+          return ajax({url: this.uri + encodeDocId(docId) + encodeOptions(options)},
             options,
             "The document could not be retrieved",
             ajaxOptions
@@ -640,13 +646,13 @@
             var uri = this.uri + encodeDocId(doc._id);
           }
           var versioned = maybeApplyVersion(doc);
-          $.ajax({
+          return $.ajax({
             type: method, url: uri + encodeOptions(options),
             contentType: "application/json",
             dataType: "json", data: toJSON(doc),
             beforeSend : beforeSend,
             complete: function(req) {
-              var resp = httpData(req, "json");
+              var resp = $.parseJSON(req.responseText);
               if (req.status == 200 || req.status == 201 || req.status == 202) {
                 doc._id = resp.id;
                 doc._rev = resp.rev;
@@ -682,7 +688,7 @@
         bulkSave: function(docs, options) {
           var beforeSend = fullCommit(options);
           $.extend(options, {successStatus: 201, beforeSend : beforeSend});
-          ajax({
+          return ajax({
               type: "POST",
               url: this.uri + "_bulk_docs" + encodeOptions(options),
               contentType: "application/json", data: toJSON(docs)
@@ -704,7 +710,7 @@
          * jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
          */
         removeDoc: function(doc, options) {
-          ajax({
+          return ajax({
               type: "DELETE",
               url: this.uri +
                    encodeDocId(doc._id) +
@@ -731,7 +737,7 @@
             }
           );
           $.extend(options, {successStatus: 201});
-          ajax({
+          return ajax({
               type: "POST",
               url: this.uri + "_bulk_docs" + encodeOptions(options),
               data: toJSON(docs)
@@ -756,7 +762,7 @@
         copyDoc: function(docId, options, ajaxOptions) {
           ajaxOptions = $.extend(ajaxOptions, {
             complete: function(req) {
-              var resp = httpData(req, "json");
+              var resp = $.parseJSON(req.responseText);
               if (req.status == 201) {
                 if (options.success) options.success(resp);
               } else if (options.error) {
@@ -766,7 +772,7 @@
               }
             }
           });
-          ajax({
+          return ajax({
               type: "COPY",
               url: this.uri + encodeDocId(docId)
             },
@@ -802,7 +808,7 @@
                 : "(" + reduceFun.toString() + ")";
             body.reduce = reduceFun;
           }
-          ajax({
+          return ajax({
               type: "POST",
               url: this.uri + "_temp_view" + encodeOptions(options),
               contentType: "application/json", data: toJSON(body)
@@ -821,10 +827,12 @@
          * docs for /db/_design/design-doc/_list/l1/v1</a>
          * @param {String} list Listname in the form of ddoc/listname
          * @param {String} view View to run list against
+         * @param {options} CouchDB <a href="http://wiki.apache.org/couchdb/
+         * HTTP_view_API">View Options</a>
          * @param {ajaxSettings} options <a href="http://api.jquery.com/
          * jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
          */
-        list: function(list, view, options) {
+        list: function(list, view, options, ajaxOptions) {
           var list = list.split('/');
           var options = options || {};
           var type = 'GET';
@@ -835,13 +843,13 @@
             delete options['keys'];
             data = toJSON({'keys': keys });
           }
-          ajax({
+          return ajax({
               type: type,
               data: data,
               url: this.uri + '_design/' + list[0] +
                    '/_list/' + list[1] + '/' + view + encodeOptions(options)
               },
-              options, 'An error occured accessing the list'
+              ajaxOptions, 'An error occured accessing the list'
           );
         },
 
@@ -868,7 +876,7 @@
             delete options["keys"];
             data = toJSON({ "keys": keys });
           }
-          ajax({
+          return ajax({
               type: type,
               data: data,
               url: this.uri + "_design/" + name[0] +
@@ -889,7 +897,7 @@
          * jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
          */
         getDbProperty: function(propName, options, ajaxOptions) {
-          ajax({url: this.uri + propName + encodeOptions(options)},
+          return ajax({url: this.uri + propName + encodeOptions(options)},
             options,
             "The property could not be retrieved",
             ajaxOptions
@@ -908,7 +916,7 @@
          * jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
          */
         setDbProperty: function(propName, propValue, options, ajaxOptions) {
-          ajax({
+          return ajax({
             type: "PUT",
             url: this.uri + propName + encodeOptions(options),
             data : JSON.stringify(propValue)
@@ -935,7 +943,7 @@
      * jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
      */
     info: function(options) {
-      ajax(
+      return ajax(
         {url: this.urlPrefix + "/"},
         options,
         "Server information could not be retrieved"
@@ -955,10 +963,10 @@
      */
     replicate: function(source, target, ajaxOptions, repOpts) {
       repOpts = $.extend({source: source, target: target}, repOpts);
-      if (repOpts.continuous) {
+      if (repOpts.continuous && !repOpts.cancel) {
         ajaxOptions.successStatus = 202;
       }
-      ajax({
+      return ajax({
           type: "POST", url: this.urlPrefix + "/_replicate",
           data: JSON.stringify(repOpts),
           contentType: "application/json"
@@ -993,36 +1001,20 @@
     }
   });
 
-  var httpData = $.httpData || function( xhr, type, s ) { // lifted from jq1.4.4
-    var ct = xhr.getResponseHeader("content-type") || "",
-      xml = type === "xml" || !type && ct.indexOf("xml") >= 0,
-      data = xml ? xhr.responseXML : xhr.responseText;
-
-    if ( xml && data.documentElement.nodeName === "parsererror" ) {
-      $.error( "parsererror" );
-    }
-    if ( s && s.dataFilter ) {
-      data = s.dataFilter( data, type );
-    }
-    if ( typeof data === "string" ) {
-      if ( type === "json" || !type && ct.indexOf("json") >= 0 ) {
-        data = $.parseJSON( data );
-      } else if ( type === "script" ||
-                  !type && ct.indexOf("javascript") >= 0 ) {
-        $.globalEval( data );
-      }
-    }
-    return data;
-  };
-
   /**
    * @private
    */
   function ajax(obj, options, errorMessage, ajaxOptions) {
+
+    var defaultAjaxOpts = {
+      contentType: "application/json",
+      headers:{"Accept": "application/json"}
+    };
+
     options = $.extend({successStatus: 200}, options);
-    ajaxOptions = $.extend({contentType: "application/json"}, ajaxOptions);
+    ajaxOptions = $.extend(defaultAjaxOpts, ajaxOptions);
     errorMessage = errorMessage || "Unknown error";
-    $.ajax($.extend($.extend({
+    return $.ajax($.extend($.extend({
       type: "GET", dataType: "json", cache : !$.browser.msie,
       beforeSend: function(xhr){
         if(ajaxOptions && ajaxOptions.headers){
@@ -1033,7 +1025,7 @@
       },
       complete: function(req) {
         try {
-          var resp = httpData(req, "json");
+          var resp = $.parseJSON(req.responseText);
         } catch(e) {
           if (options.error) {
             options.error(req.status, req, e);

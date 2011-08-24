@@ -20,26 +20,24 @@ var Tasks = (function () {
   var mainDb  = document.location.pathname.split("/")[1];
   var paneWidth = 0;
   var isMobile = Utils.isMobile();
-  var router  = new Router();
+  var router  = Router();
   var current_tpl = null;
   var slidePane = null;
-  var docs    = {};
-  var tasks   = [];
+  var docs = {};
+  var tasks = [];
   var servers = [];
-  var zIndex  = 0;
+  var zIndex = 0;
+  var tags = [];
+  var urltags = [];
   var currentOffset = 0;
   var lastPane = null;
-  var $db     = $.couch.db(mainDb);
+  var $db = $.couch.db(mainDb);
 
   var templates = {
     addserver_tpl : {
       transition: "slideUp",
       events: { '.deleteserver' : {'event': pressed, 'callback' : deleteServer},
                 'input' : {'event':"keyup", 'callback' : checkCanSaveServer}}
-    },
-    addtask_tpl : {
-      events: { 'input,textarea' : {'event':"keyup", 'callback' : checkCanSaveNote}},
-      transition: "slideUp"
     },
     task_tpl : { transition: "slideHorizontal" },
     sync_tpl : {
@@ -56,6 +54,19 @@ var Tasks = (function () {
         '.delete' : {'event': pressed, 'callback' : deleteTask}
       },
       init : function(dom) {
+
+        $("#edit_filter", dom).bind('mousedown', function() {
+          $('#filterui', dom).toggle();
+        });
+
+        $("#filterui", dom).bind('mousedown', function(e) {
+          if (e.target.nodeName === 'A') {
+            var args = $.grep(document.location.hash.replace("#/", "").split(","),
+                              function(x) { return x !== ""; });
+            addOrRemove(args, $(e.target).data("key"));
+          }
+        });
+
         if (!isMobile) {
           $("#notelist", dom).sortable({
             items: "li:not(.header)",
@@ -76,19 +87,22 @@ var Tasks = (function () {
     }
   };
 
+  function addOrRemove(arr, key) {
+    if ($.inArray(key, arr) === -1) {
+      arr.push(key);
+    } else {
+      arr = $.grep(arr, function(x) { return x !== key; });
+    }
+    if (arr.length === 0) {
+      document.location.hash = "#/";
+    } else {
+      document.location.hash = "#/" + arr.join(",");
+    }
+  }
+
   templates.complete_tpl = templates.home_tpl;
 
-  router.get(/^(!)?$/, function () {
-    view('couchtasks/tasks', {
-      descending: true,
-      success : function (data) {
-        tasks = getValues(data.rows);
-        render(/^(!)?$/, "home_tpl", "#home_content", {notes:tasks});
-      }
-    });
-  });
-
-  router.get('!/add_server/', function () {
+  router.get('#/add_server/', function () {
     view('couchtasks/servers', {
       success : function (data) {
         servers = getValues(data.rows);
@@ -97,11 +111,7 @@ var Tasks = (function () {
     });
   });
 
-  router.get('!/add_task/', function () {
-    render('!/add_task/', "addtask_tpl", "#add_content");
-  });
-
-  router.get('!/complete/', function (id) {
+  router.get('#/complete/', function (_, id) {
     $db.view('couchtasks/complete', {
       descending: true,
       success : function (data) {
@@ -111,7 +121,7 @@ var Tasks = (function () {
     });
   });
 
-  router.get('!/sync/', function (id) {
+  router.get('#/sync/', function (_, id) {
     $db.view('couchtasks/servers', {
       success : function (data) {
         servers = getValues(data.rows);
@@ -120,18 +130,92 @@ var Tasks = (function () {
     });
   });
 
-  router.get('!/task/:id/', function (id) {
+  router.get('#/task/:id/', function (_, id) {
     $db.openDoc(id, {
       success: function(doc) {
         docs[doc._id] = doc;
         doc.completed = doc.status === "complete" ? "checked='checked'" : "";
         doc.tags = doc.tags.join(" ");
-        render('!/task/:id/', "task_tpl", null, doc);
+        render('/task/:id/', "task_tpl", null, doc);
       }
     });
   });
 
-  router.post('edit', function (e, details) {
+  router.get(/#\/?(.*)/, function (_, t) {
+
+    var tgs = $.grep((t || "").split(","), function(x) { return x !== ""; });
+    var tagsObj = $.map($.extend(true, {}, tags), function(el) {
+      if ($.inArray(el.tag, tgs) !== -1) {
+        el.class = "active";
+      }
+      return el;
+    });
+
+    if (!tgs.length) {
+      view('couchtasks/tasks', {
+        descending: true,
+        success : function (data) {
+          tasks = getValues(data.rows);
+          render('#/:tags', "home_tpl", "#home_content", {
+            usedTags: tgs,
+            notes:tasks,
+            tags:tagsObj
+          });
+        }
+      });
+    } else {
+      var args = [], tasks = [];
+      function designDocs(args) {
+        return $db.view('couchtasks/tags', args);
+      }
+      for (var x in tgs) {
+        args.push({
+          reduce:false,
+          include_docs: true,
+          startkey: [tgs[x]],
+          endkey: [tgs[x]]
+        });
+      }
+      $.when.apply(this, $.map(args, designDocs)).then(function () {
+        if (args.length === 1) {
+          arguments = [arguments];
+        }
+        $.each(arguments, function(element, i) {
+          $.each(i[0].rows, function(y) {
+            if (hasTags(i[0].rows[y].doc, tgs) && !exists(tasks, i[0].rows[y].id)) {
+              tasks.push(i[0].rows[y].doc);
+            }
+          });
+        });
+        render('#/:tags', "home_tpl", "#home_content", {
+          notes:tasks,
+          tags:tagsObj,
+          usedTags: tgs,
+        });
+      });
+    }
+  });
+
+  function hasTags(doc, tags) {
+    var i = 0;
+    for(var x in tags) {
+      if ($.inArray(tags[x], doc.tags) !== -1) {
+        ++i;
+      }
+    }
+    return i === tags.length;
+  }
+
+  function exists(arr, id) {
+    for(var obj in arr) {
+      if (arr[obj]._id === id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  router.post('#edit', function (_, e, details) {
     var doc = docs[details.id];
     doc.tags = details.tags.split(" ");
     doc.notes = details.notes;
@@ -143,7 +227,7 @@ var Tasks = (function () {
     }});
   });
 
-  router.post('add_server', function (e, details) {
+  router.post('#add_server', function (_, e, details) {
     if (details.server === "") {
       $("input[name=server]").addClass("formerror");
       return;
@@ -155,10 +239,11 @@ var Tasks = (function () {
     }});
   });
 
-  router.post('add_task', function (e, details) {
-    newTask(details.title, details.notes, details.tags, function () {
+  router.post('#add_task', function (_, e, details) {
+    newTask(details.title, "", "", function (data) {
+      console.log(data);
       viewCache = {};
-      router.back();
+      document.location = "#/task/" + data.id + "/";
     });
   });
 
@@ -246,10 +331,6 @@ var Tasks = (function () {
   }
 
   function render(url, tpl, dom, data) {
-
-    if (router.matchesCurrent(url) === null) {
-      return;
-    }
 
     data = data || {};
     $("body").removeClass(current_tpl).addClass(tpl);
@@ -382,7 +463,7 @@ var Tasks = (function () {
       "notes":notes
     }, {
       "success": function (data) {
-        callback();
+        callback(data);
       }
     });
   }
@@ -416,7 +497,7 @@ var Tasks = (function () {
     if (!$(e.target).is("li.task") && e.target.nodeName !== 'SPAN') {
       return;
     }
-    document.location.href = "#!/task/" + $(this).attr("data-id") + "/";
+    document.location.href = "#/task/" + $(this).attr("data-id") + "/";
   }
 
   function doSync(e) {
@@ -501,17 +582,28 @@ var Tasks = (function () {
     $("#add_task_frm").trigger("submit");
   });
 
-  $(document).bind("keypress", function (e) {
-    if (e.which === 13 && e.target.nodeName !== 'TEXTAREA') {
-      document.location.href = "#!/add_task/";
-    }
-  });
-
   $(window).bind("resize", function () {
     paneWidth = $("body").width();
   });
   $(window).resize();
 
-  router.init();
+  $db.view("couchtasks/tags", {
+    group: true,
+    success: function(data) {
+
+      var colors = ["red", "green", "blue", "pink", "magenta", "orange"];
+      var i = 0, css = [];
+      for (var tag in data.rows) {
+        css.push(".tag_" +  data.rows[tag].key[0] + " { background: " + colors[i++] + " }");
+        tags.push({"tag": data.rows[tag].key[0], "count":data.rows[tag].value});
+      }
+
+      var style = document.createElement('style');
+      style.type = 'text/css';
+      style.innerHTML = css.join("\n");
+      document.getElementsByTagName('head')[0].appendChild(style);
+      router.init(window);
+    }
+  });
 
 })();
