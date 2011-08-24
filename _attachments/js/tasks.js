@@ -106,7 +106,7 @@ var Tasks = (function () {
     view('couchtasks/servers', {
       success : function (data) {
         servers = getValues(data.rows);
-        render('!/add_server/', 'addserver_tpl', '#add_server', {servers:servers});
+        render('addserver_tpl', '#add_server', {servers:servers});
       }
     });
   });
@@ -116,7 +116,7 @@ var Tasks = (function () {
       descending: true,
       success : function (data) {
         tasks = getValues(data.rows);
-        render('!/complete/', 'complete_tpl', '#complete_content', {notes:tasks});
+        render('complete_tpl', '#complete_content', {notes:tasks});
       }
     });
   });
@@ -125,7 +125,7 @@ var Tasks = (function () {
     $db.view('couchtasks/servers', {
       success : function (data) {
         servers = getValues(data.rows);
-        render('!/sync/', 'sync_tpl', '#sync_content', {servers:servers});
+        render('sync_tpl', '#sync_content', {servers:servers});
       }
     });
   });
@@ -136,7 +136,7 @@ var Tasks = (function () {
         docs[doc._id] = doc;
         doc.completed = doc.status === "complete" ? 'checked="checked"' : '';
         doc.tags = doc.tags.join(' ');
-        render('/task/:id/', 'task_tpl', null, doc);
+        render('task_tpl', null, doc);
       }
     });
   });
@@ -156,7 +156,7 @@ var Tasks = (function () {
         descending: true,
         success : function (data) {
           tasks = getValues(data.rows);
-          render('#/:tags', 'home_tpl', '#home_content', {
+          render('home_tpl', '#home_content', {
             usedTags: tgs,
             notes:tasks,
             tags:tagsObj
@@ -187,7 +187,7 @@ var Tasks = (function () {
             }
           });
         });
-        render('#/:tags', 'home_tpl', '#home_content', {
+        render('home_tpl', '#home_content', {
           notes:tasks,
           tags:tagsObj,
           usedTags: tgs,
@@ -243,7 +243,6 @@ var Tasks = (function () {
 
   router.post('#add_task', function (_, e, details) {
     newTask(details.title, '', '', function (data) {
-      console.log(data);
       viewCache = {};
       document.location = '#/task/' + data.id + '/';
     });
@@ -333,7 +332,7 @@ var Tasks = (function () {
     return arr;
   }
 
-  function render(url, tpl, dom, data) {
+  function render(tpl, dom, data) {
 
     data = data || {};
     $('body').removeClass(current_tpl).addClass(tpl);
@@ -577,6 +576,9 @@ var Tasks = (function () {
     paneWidth = $('body').width();
   }).trigger('resize');
 
+  $('#edittask_btn').bind('click', function (e) {
+    $('#edit_task_form').trigger('submit');
+  });
 
   $db.view('couchtasks/tags', {
     group: true,
