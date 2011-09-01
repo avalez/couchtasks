@@ -429,8 +429,9 @@ var Tasks = (function () {
       return;
     }
 
-    // wont order correctly if /add_task/ is accessed directly
-    var index = tasks.length > 0 ? tasks[0].index + 1 : 1;
+    var top = $('#notelist li:first-child');
+    var index = parseInt(top.attr('data-index'), 10) + 1 || 1;
+
     $db.saveDoc({
       type: 'task',
       index: index,
