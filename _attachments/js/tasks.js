@@ -217,17 +217,11 @@ var Tasks = (function () {
 
   function markDone(e) {
 
-    var status = {
-      home_tpl: {checked: 'complete', unchecked: 'active'},
-      complete_tpl: {checked: 'active', unchecked: 'complete'}
-    };
-
-    var cur_status = status[current_tpl][$(this).is(':checked')
-                                         ? 'checked' : 'unchecked'];
+    var status = $(this).is(':checked') ? 'complete' : 'active';
     var li = $(e.target).parents("li");
     var id = li.attr("data-id");
     var url = '/' + mainDb + '/_design/couchtasks/_update/update_status/' + id +
-      '?status=' + cur_status;
+      '?status=' + status;
 
     myChanges.push(id);
 
@@ -238,8 +232,7 @@ var Tasks = (function () {
       datatype: 'json',
       success: function() {
         viewCache = {};
-        if (cur_status === 'complete' && current_tpl === 'home_tpl' ||
-            cur_status === 'active' && current_tpl === 'complete_tpl') {
+        if (status === 'complete') {
           li.addClass('deleted');
         } else {
           li.removeClass('deleted');
