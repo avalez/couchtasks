@@ -151,7 +151,10 @@ var Tasks = (function () {
 
 
   router.post('#add_task', function (_, e, details) {
-    newTask(details.title, '', '', function (data) {
+
+    var doc = extractTags(details.title);
+
+    newTask(doc.text, '', doc.tags, function (data) {
       viewCache = {};
       document.location = '#/task/' + data.id + '/';
     });
@@ -417,7 +420,7 @@ var Tasks = (function () {
       index: index,
       status: 'active',
       title: title,
-      tags: $.grep(tags.split(" "), function(x) { return x !== ''; }),
+      tags: tags,
       notes: notes
     }, {
       success: function (data) {
@@ -520,6 +523,14 @@ var Tasks = (function () {
     });
   }
 
+
+  function extractTags(text) {
+    var tags = $.map(text.match(/\#([\w\-\.]*[\w]+[\w\-\.]*)/g) || [], function(tag) { return tag.slice(1); });
+    return {
+      tags: tags,
+      text: text.replace(/\#([\w\-\.]*[\w]+[\w\-\.]*)/g, '').trim()
+    };
+  }
 
   function createCheckBox(parent) {
     $('input[type=checkbox]', parent).each(function() {
