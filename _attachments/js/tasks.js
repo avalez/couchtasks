@@ -109,7 +109,6 @@ var Tasks = (function () {
             axis:'y',
             distance:30,
             start: function(event, ui) {
-              console.log("wtf?");
               ui.item.attr('data-noclick','true');
             },
             stop: function(event, ui) {
@@ -170,12 +169,10 @@ var Tasks = (function () {
 
 
   router.post('#add_task', function (_, e, details) {
-
     var doc = extractTags(details.title);
-
     newTask(doc.text, '', doc.tags, function (data) {
       viewCache = {};
-      document.location = '#/task/' + data.id + '/';
+      $('#add_task_input').val('');
     });
   });
 
