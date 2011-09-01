@@ -62,20 +62,20 @@ var Tasks = (function () {
 
 
   router.get('#/task/:id/', function (_, id) {
-    $db.openDoc(id).then(function(doc) {
-      $db.view('couchtasks/tags',{group_level: 1}).then(function(data) {
+    getTags(function() {
 
-        var tags = $.map(data.rows, function(obj) {
+      $db.openDoc(id).then(function(doc) {
+        var t = $.map(tags, function(obj) {
           return {
-            tag: obj.key[0],
-            count: obj.value,
-            active: !($.inArray(obj.key[0], doc.tags) === -1)
+            tag: obj.tag,
+            count: obj.count,
+            active: !($.inArray(obj.tag, doc.tags) === -1)
           };
         });
 
         docs[doc._id] = $.extend({}, doc);
         doc.completed = doc.status === "complete" ? 'checked="checked"' : '';
-        doc.usedTags = tags;
+        doc.usedTags = t;
         render('task_tpl', null, doc, function(dom) {
           $('.tag_wrapper', dom).bind('click', function(e) {
             if ($(e.target).is("a.tag")) {
@@ -89,46 +89,35 @@ var Tasks = (function () {
 
   router.get('#/tags/*test', function (_, t) {
 
-    var params = $.grep(t.split(','), function(x) { return x !== ''; });
     current_tags = $.grep(t.split(','), function(x) { return x !== ''; });
 
-    $db.view('couchtasks/tags',{group_level: 1}).then(function(data) {
+    render('home_tpl', '#home_content', {}, function(dom) {
 
-      var tags = $.map(data.rows, function(obj) {
-        return {
-          tag: obj.key[0],
-          count: obj.value,
-          active: !($.inArray(obj.key[0], current_tags) === -1)
-        };
-      });
-
-      render('home_tpl', '#home_content', {usedTags: tags}, function(dom) {
-
-        if (!Utils.isMobile()) {
-          $('#notelist', dom).sortable({
-            axis:'y',
-            distance:30,
-            start: function(event, ui) {
-              ui.item.attr('data-noclick','true');
-            },
-            stop: function(event, ui) {
-              var index = createIndex(ui.item);
-              if (index !== false) {
-                updateIndex(ui.item.attr('data-id'), index);
-              }
+      if (!Utils.isMobile()) {
+        $('#notelist', dom).sortable({
+          axis:'y',
+          distance:30,
+          start: function(event, ui) {
+            ui.item.attr('data-noclick','true');
+          },
+          stop: function(event, ui) {
+            var index = createIndex(ui.item);
+            if (index !== false) {
+              updateIndex(ui.item.attr('data-id'), index);
             }
-          });
-        }
-
-        $('#hdr', dom).bind('click', function(e) {
-          if ($(e.target).is("a.tag")) {
-            addOrRemove(params, $(e.target).data('key'));
           }
         });
-      }).then(function() {
-        updateTaskList();
+      }
+
+      $('#hdr', dom).bind('click', function(e) {
+        if ($(e.target).is("a.tag")) {
+          addOrRemove(current_tags, $(e.target).data('key'));
+        }
       });
+    }).then(function() {
+      updateTaskList();
     });
+
   });
 
   router.post('#edit', function (_, e, details) {
@@ -542,7 +531,9 @@ var Tasks = (function () {
 
 
   function extractTags(text) {
-    var tags = $.map(text.match(/\#([\w\-\.]*[\w]+[\w\-\.]*)/g) || [], function(tag) { return tag.slice(1); });
+    var tags = $.map(text.match(/\#([\w\-\.]*[\w]+[\w\-\.]*)/g) || [],
+                     function(tag) { return tag.slice(1); });
+
     return {
       tags: tags,
       text: text.replace(/\#([\w\-\.]*[\w]+[\w\-\.]*)/g, '').trim()
@@ -564,42 +555,44 @@ var Tasks = (function () {
   };
 
   function updateTaskList() {
-    tgs = current_tags;
-    if (!tgs.length) {
-      view('couchtasks/tasks', {
-        descending: true,
-        success : function (data) {
-          tasks = getValues(data.rows);
-          renderTasksList(tasks);
-        }
-      });
-    } else {
-      var args = [], tasks = [];
-      function designDocs(args) {
-        return $db.view('couchtasks/tags', args);
-      }
-      for (var x in tgs) {
-        args.push({
-          reduce:false,
-          include_docs: true,
-          startkey: [tgs[x]],
-          endkey: [tgs[x]]
+    getTags(function() {
+      if (!current_tags.length) {
+        view('couchtasks/tasks', {
+          descending: true,
+          success : function (data) {
+            tasks = getValues(data.rows);
+            renderTasksList(tasks);
+          }
         });
-      }
-      $.when.apply(this, $.map(args, designDocs)).then(function () {
-        if (args.length === 1) {
-          arguments = [arguments];
+      } else {
+        var args = [], tasks = [];
+        function designDocs(args) {
+          return $db.view('couchtasks/tags', args);
         }
-        $.each(arguments, function(element, i) {
-          $.each(i[0].rows, function(y) {
-            if (hasTags(i[0].rows[y].doc, tgs) && !exists(tasks, i[0].rows[y].id)) {
-              tasks.push(i[0].rows[y].doc);
-            }
+        for (var x in current_tags) {
+          args.push({
+            reduce:false,
+            include_docs: true,
+            startkey: [current_tags[x]],
+            endkey: [current_tags[x]]
           });
+        }
+        $.when.apply(this, $.map(args, designDocs)).then(function () {
+          if (args.length === 1) {
+            arguments = [arguments];
+          }
+          $.each(arguments, function(element, i) {
+            $.each(i[0].rows, function(y) {
+              if (hasTags(i[0].rows[y].doc, current_tags) &&
+                  !exists(tasks, i[0].rows[y].id)) {
+                tasks.push(i[0].rows[y].doc);
+              }
+            });
+          });
+          renderTasksList(tasks);
         });
-        renderTasksList(tasks);
-      });
-    }
+      }
+    });
   }
 
 
@@ -607,11 +600,24 @@ var Tasks = (function () {
 
     tasks.sort(function(a, b) { return a.index < b.index; });
 
-    var rendered = $('<div>' +
-                     Mustache.to_html($('#rows_tpl').html(), {notes:tasks})
-                     + '</div>');
+    var rendered =
+      $('<div>' + Mustache.to_html($('#rows_tpl').html(), {notes:tasks}) + '</div>');
     createCheckBox(rendered);
     initTasksList(rendered);
+
+    var usedTags = $.map(tags, function(obj) {
+        return {
+          tag: obj.tag,
+          count: obj.count,
+          active: !($.inArray(obj.tag, current_tags) === -1)
+        };
+    });
+
+    var renderedTags =
+      $('<div>' + Mustache.to_html($('#tags_tpl').html(), {tags: usedTags}) +
+        '</div>');
+
+    $('#hdr').empty().append(renderedTags.children());
     $('#notelist').empty().append(rendered.children());
     $('#notelist').sortable("refresh");
   }
@@ -646,27 +652,32 @@ var Tasks = (function () {
   });
 
 
-  $db.view('couchtasks/tags', {
-    group: true,
-    success: function(data) {
+  function getTags(callback) {
+    $db.view('couchtasks/tags', {
+      group: true,
+      success: function(data) {
 
-      var colors = ['#288BC2', '#DB2927', '#17B546', '#EB563E', '#AF546A', '#4A4298', '#E7CD17', '#651890',
-                    '#E1B931', '#978780', '#CC7E5B', '#7C3F09', '#978780', '#07082F'];
-      var x, tag, i = 0, css = [];
-      var style = document.createElement('style');
+        var colors = ['#288BC2', '#DB2927', '#17B546', '#EB563E', '#AF546A',
+                      '#4A4298', '#E7CD17', '#651890', '#E1B931', '#978780',
+                      '#CC7E5B', '#7C3F09', '#978780', '#07082F'];
 
-      for (x in data.rows) {
-        tag = data.rows[x].key[0]
-        css.push('.tag_' + tag + ' { background: ' + colors[i++] + ' }');
-        tags.push({tag: tag, count: data.rows[x].value});
+        var x, tag, i = 0, css = [];
+
+        tags = [];
+        for (x in data.rows) {
+          tag = data.rows[x].key[0]
+          css.push('.tag_' + tag + ' { background: ' + colors[i++] + ' }');
+          tags.push({tag: tag, count: data.rows[x].value});
+        }
+
+        $("#tag_defs").html(css.join('\n'));
+
+        callback();
       }
+    });
+  };
 
-      style.type = 'text/css';
-      style.innerHTML = css.join('\n');
-      document.getElementsByTagName('head')[0].appendChild(style);
-      router.init(window);
-    }
-  });
+  router.init(window);
 
   function startUpdater() {
 
