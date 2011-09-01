@@ -232,10 +232,35 @@ var Tasks = (function () {
       datatype: 'json',
       success: function() {
         viewCache = {};
-        if (status === 'complete') {
-          li.addClass('deleted');
+        if (current_tpl !== 'home_tpl') {
+          if (status === 'complete') {
+            li.addClass('deleted');
+          } else {
+            li.removeClass('deleted');
+          }
         } else {
-          li.removeClass('deleted');
+          var ul = li.parent("ul");
+          if (status === 'complete') {
+            li.detach();
+            li.addClass('deleted');
+            li.appendTo(ul);
+          } else {
+            li.detach();
+            li.removeClass('deleted');
+            var index = parseInt(li.data("index"), 10);
+            var obj;
+            ul.children().each(function(_, child) {
+              if (parseInt($(child).data("index"), 10) < index) {
+                obj = child;
+                return false;
+              }
+            });
+            if (!obj) {
+              li.appendTo(ul);
+            } else {
+              li.insertBefore(obj || ul);
+            }
+          }
         }
       }
     });
