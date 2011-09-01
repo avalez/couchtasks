@@ -67,17 +67,7 @@
       </div>
 
       <ul id="notelist">
-        {{#notes}}
-        <li data-id="{{id}}" data-rev="{{rev}}" data-index="{{index}}" class="task">
-          <input class="checker" type="checkbox" />
-          <a class="title" href="#/task/{{id}}/">{{title}}</a>&nbsp;
-          {{#tags}}
-          <a class="tag tag_{{.}}" data-key="{{.}}">&nbsp;</a>
-          {{/tags}}
-          <!-- <span class="arrow right">&rsaquo;</span> -->
-        </li>
-        {{/notes}}
-        {{^notes}}<li class="none">Loading ...</li>{{/notes}}
+        <li class="none">Loading ...</li>
       </ul>
     </script>
 
@@ -169,7 +159,7 @@
         <!-- </table> -->
 
         <input class="checker" type="checkbox" />
-        <a class="title" href="#/task/{{id}}/">{{title}}
+        <a class="title" href="#/task/{{_id}}/">{{title}}
           <!-- <div class="ttag"> -->
             {{#tags}}<span class="tag tag_{{.}}" data-key="{{.}}">{{.}}</span>{{/tags}}
           <!-- </div> -->

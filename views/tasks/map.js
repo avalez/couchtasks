@@ -3,9 +3,9 @@ function(doc) {
     emit([doc.index || 0], {
       index: doc.index || 0,
       title:doc.title,
-      rev:doc._rev,
+      _rev:doc._rev,
       tags: doc.tags,
-      id:doc._id
+      _id:doc._id
     });
   }
 };
