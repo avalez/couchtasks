@@ -17,23 +17,25 @@ var Tasks = (function () {
 
   var mainDb  = document.location.pathname.split('/')[1];
   var paneWidth = 0;
-  var isMobile = Utils.isMobile();
   var router  = Router();
   var current_tpl = null;
   var slidePane = null;
   var docs = {};
   var tasks = [];
   var servers = [];
-  var zIndex = 0;
   var tags = [];
-  var urltags = [];
   var currentOffset = 0;
   var lastPane = null;
   var $db = $.couch.db(mainDb);
   var $changes;
   var viewCache = {};
   var current_tags = [];
+  var myChanges = [];
+  var globalTags = [];
 
+  router.get('#/?', function (_, t) {
+    router.forward('#/tags/');
+  });
 
   router.get('#/add_server/', function () {
     $db.view('couchtasks/servers').then(function (data) {
@@ -61,89 +63,71 @@ var Tasks = (function () {
 
   router.get('#/task/:id/', function (_, id) {
     $db.openDoc(id).then(function(doc) {
-      docs[doc._id] = doc;
-      doc.completed = doc.status === "complete" ? 'checked="checked"' : '';
-      doc.tags = doc.tags.join(' ');
-      render('task_tpl', null, doc);
-    });
-  });
+      $db.view('couchtasks/tags',{group_level: 1}).then(function(data) {
 
-  router.get(/#\/?(.*)/, function (_, t) {
-
-    var params = $.grep(document.location.hash.replace('#/', '').split(','),
-                        function(x) { return x !== ''; });
-
-    current_tags = $.grep((t || "").split(','), function(x) { return x !== ''; });
-
-    render('home_tpl', '#home_content', {usedTags: current_tags}, function(dom) {
-      $('#hdr', dom).bind('click', function(e) {
-        if ($(e.target).is("a.tag")) {
-          addOrRemove(params, $(e.target).data('key'));
-        }
-      });
-    }).then(function() {
-      updateTaskList();
-    });
-
-  });
-
-
-  function updateTaskList() {
-    tgs = current_tags;
-    if (!tgs.length) {
-      view('couchtasks/tasks', {
-        descending: true,
-        success : function (data) {
-          tasks = getValues(data.rows);
-          renderTasksList(tasks);
-        }
-      });
-    } else {
-      var args = [], tasks = [];
-      function designDocs(args) {
-        return $db.view('couchtasks/tags', args);
-      }
-      for (var x in tgs) {
-        args.push({
-          reduce:false,
-          include_docs: true,
-          startkey: [tgs[x]],
-          endkey: [tgs[x]]
+        var tags = $.map(data.rows, function(obj) {
+          return {
+            tag: obj.key[0],
+            count: obj.value,
+            active: !($.inArray(obj.key[0], doc.tags) === -1)
+          };
         });
-      }
-      $.when.apply(this, $.map(args, designDocs)).then(function () {
-        if (args.length === 1) {
-          arguments = [arguments];
-        }
-        $.each(arguments, function(element, i) {
-          $.each(i[0].rows, function(y) {
-            if (hasTags(i[0].rows[y].doc, tgs) && !exists(tasks, i[0].rows[y].id)) {
-              tasks.push(i[0].rows[y].doc);
+
+        docs[doc._id] = $.extend({}, doc);
+        doc.completed = doc.status === "complete" ? 'checked="checked"' : '';
+        doc.usedTags = tags;
+        render('task_tpl', null, doc, function(dom) {
+          $('.tag_wrapper', dom).bind('click', function(e) {
+            if ($(e.target).is("a.tag")) {
+              $(e.target).toggleClass('active');
             }
           });
         });
-        renderTasksList(tasks);
       });
-    }
-  }
+    });
+  });
 
+  router.get('#/tags/*test', function (_, t) {
 
-  function renderTasksList(tasks) {
-    var rendered = $('<div>' +
-                     Mustache.to_html($('#rows_tpl').html(), {notes:tasks})
-                     + '</div>');
-    createCheckBox(rendered);
-    initTasksList(rendered);
-    $('#notelist').empty().append(rendered);
-  }
+    var params = $.grep(t.split(','), function(x) { return x !== ''; });
+    current_tags = $.grep(t.split(','), function(x) { return x !== ''; });
 
+    $db.view('couchtasks/tags',{group_level: 1}).then(function(data) {
+
+      var tags = $.map(data.rows, function(obj) {
+        return {
+          tag: obj.key[0],
+          count: obj.value,
+          active: !($.inArray(obj.key[0], current_tags) === -1)
+        };
+      });
+
+      render('home_tpl', '#home_content', {usedTags: tags}, function(dom) {
+        $('#hdr', dom).bind('click', function(e) {
+          if ($(e.target).is("a.tag")) {
+            addOrRemove(params, $(e.target).data('key'));
+          }
+        });
+      }).then(function() {
+        updateTaskList();
+      });
+    });
+  });
 
   router.post('#edit', function (_, e, details) {
+
+    var tags = [];
     var doc = docs[details.id];
-    doc.tags = details.tags.split(" ");
+
+    $('.tag_wrapper').find(".tag.active").each(function() {
+      tags.push($(this).attr('data-key'));
+    });
+
+    doc.tags = tags
     doc.notes = details.notes;
     doc.status = details.completed && details.completed === 'on' ?
       'complete' : 'active';
+
     $db.saveDoc(doc, {
       success: function () {
         viewCache = {};
@@ -183,7 +167,7 @@ var Tasks = (function () {
     if (arr.length === 0) {
       document.location.hash = '#/';
     } else {
-      document.location.hash = '#/' + arr.join(',');
+      document.location.hash = '#/tags/' + arr.join(',');
     }
   }
 
@@ -236,6 +220,8 @@ var Tasks = (function () {
     var id = li.attr("data-id");
     var url = '/' + mainDb + '/_design/couchtasks/_update/update_status/' + id +
       '?status=' + cur_status;
+
+    myChanges.push(id);
 
     $.ajax({
       url: url,
@@ -431,7 +417,7 @@ var Tasks = (function () {
       index: index,
       status: 'active',
       title: title,
-      tags: tags.split(' '),
+      tags: $.grep(tags.split(" "), function(x) { return x !== ''; }),
       notes: notes
     }, {
       success: function (data) {
@@ -549,20 +535,63 @@ var Tasks = (function () {
     });
   };
 
+  function updateTaskList() {
+    tgs = current_tags;
+    if (!tgs.length) {
+      view('couchtasks/tasks', {
+        descending: true,
+        success : function (data) {
+          tasks = getValues(data.rows);
+          renderTasksList(tasks);
+        }
+      });
+    } else {
+      var args = [], tasks = [];
+      function designDocs(args) {
+        return $db.view('couchtasks/tags', args);
+      }
+      for (var x in tgs) {
+        args.push({
+          reduce:false,
+          include_docs: true,
+          startkey: [tgs[x]],
+          endkey: [tgs[x]]
+        });
+      }
+      $.when.apply(this, $.map(args, designDocs)).then(function () {
+        if (args.length === 1) {
+          arguments = [arguments];
+        }
+        $.each(arguments, function(element, i) {
+          $.each(i[0].rows, function(y) {
+            if (hasTags(i[0].rows[y].doc, tgs) && !exists(tasks, i[0].rows[y].id)) {
+              tasks.push(i[0].rows[y].doc);
+            }
+          });
+        });
+        renderTasksList(tasks);
+      });
+    }
+  }
+
+
+  function renderTasksList(tasks) {
+    var rendered = $('<div>' +
+                     Mustache.to_html($('#rows_tpl').html(), {notes:tasks})
+                     + '</div>');
+    createCheckBox(rendered);
+    initTasksList(rendered);
+    $('#notelist').empty().append(rendered.children());
+  }
+
 
   function initTasksList(dom) {
 
-    var params = $.grep(document.location.hash.replace('#/', '').split(','),
+    var params = $.grep(document.location.hash.replace('#/tags/', '').split(','),
                         function(x) { return x !== ''; });
 
     $('.checker', dom).bind('change', markDone);
     $('.delete', dom).bind('click', deleteTask);
-
-    $('.task', dom).bind('click', function(e) {
-      if ($(e.target).is("a.tag")) {
-        addOrRemove(params, $(e.target).data('key'));
-      }
-    }),
 
     $('#edit_filter', dom).bind('mousedown', function() {
       $('#filterui', dom).toggle();
@@ -573,23 +602,6 @@ var Tasks = (function () {
         addOrRemove(params, $(e.target).data('key'));
       }
     });
-
-    if (!isMobile) {
-      $('#notelist', dom).sortable({
-        items: 'li:not(.header)',
-        axis:'y',
-        distance:30,
-        start: function(event, ui) {
-          ui.item.attr('data-noclick','true');
-        },
-        stop: function(event, ui) {
-          var index = createIndex(ui.item);
-          if (index !== false) {
-            updateIndex(ui.item.attr('data-id'), index);
-          }
-        }
-      });
-    }
   }
 
   $(window).bind('resize', function () {
@@ -606,7 +618,8 @@ var Tasks = (function () {
     group: true,
     success: function(data) {
 
-      var colors = ['red', 'green', 'blue', 'pink', 'magenta', 'orange'];
+      var colors = ['#288BC2', '#DB2927', '#17B546', '#EB563E', '#AF546A', '#4A4298', '#E7CD17', '#651890',
+                    '#E1B931', '#978780', '#CC7E5B', '#7C3F09', '#978780', '#07082F'];
       var x, tag, i = 0, css = [];
       var style = document.createElement('style');
 
@@ -624,19 +637,25 @@ var Tasks = (function () {
   });
 
   function startUpdater() {
+
     $changes = $db.changes();
     $changes.onChange(function(changes) {
 
+      var doRefresh = false;
       // Full refresh if design doc changes
       for(var i in changes.results) {
         if (/^_design/.test(changes.results[i].id)) {
           document.location.reload();
         }
+        if (!doRefresh && $.inArray(changes.results[i].id, myChanges) === -1) {
+          doRefresh = true;
+        }
       }
 
       viewCache = {};
 
-      if (/#\/?(.*)/.test("#" + document.location.hash)) {
+      if (doRefresh && router.matchesCurrent('#/tags/*test')) {
+        console.log("Updating");
         updateTaskList();
       }
 

@@ -1,14 +1,14 @@
 var Router = (function() {
 
-  var PATH_REPLACER = "([^\/]+)"
-    , PATH_MATCHER = (/:([\w\d]+)/g)
-    , WILD_MATCHER = (/\*([\w\d]+)/g)
-    , WILD_REPLACER = "(.*?)"
-    , lastPage
-    , history = []
-    , hashparams = {}
-    , params = {}
-    , routes = {GET: [], POST: []};
+  var PATH_REPLACER = "([^\/]+)";
+  var PATH_MATCHER = (/:([\w\d]+)/g)
+  var WILD_MATCHER = (/\*([\w\d]+)/g)
+  var WILD_REPLACER = "(.*?)"
+  var lastPage
+  var history = []
+  var hashparams = {}
+  var params = {}
+  var routes = {GET: [], POST: []};
 
   $.each(document.location.search.slice(1).split("&"), function(i, param) {
     var tmp = param.split("=");
@@ -76,6 +76,8 @@ var Router = (function() {
   }
 
   function forward(url) {
+    history.pop(); // current url
+    history.push(url);
     trigger("GET", url);
   }
 
@@ -137,7 +139,7 @@ var Router = (function() {
   }
 
   function matchesCurrent(needle) {
-    return window.location.hash.slice(1).match(toRegex(needle));
+    return current().match(toRegex(needle));
   }
 
   function matchPath(verb, path) {
@@ -176,15 +178,22 @@ var Router = (function() {
     return hashparams[key];
   }
 
-  return { previous : previous
-         , refresh : refresh
-         , forward : forward
-         , back    : back
-         , get     : get
-         , post    : post
-         , init    : init
-         , matchesCurrent : matchesCurrent
-         , hashparam : hashparam
-         , params : params };
+  function current() {
+    return history[history.length - 1];
+  }
+
+  return {
+    previous : previous,
+    refresh : refresh,
+    forward : forward,
+    current : current,
+    back    : back
+    , get     : get
+    , post    : post
+    , init    : init
+    , matchesCurrent : matchesCurrent
+    , hashparam : hashparam
+    , params : params
+  };
 
 });

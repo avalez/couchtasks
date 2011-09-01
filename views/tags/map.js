@@ -1,7 +1,9 @@
 function(doc) {
   if (doc.tags) {
     for (var tag in doc.tags) {
-      emit([doc.tags[tag]], null)
+      if (doc.tags[tag] !== "") {
+        emit([doc.tags[tag]], null)
+      }
     }
   }
 }

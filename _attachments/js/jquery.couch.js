@@ -932,7 +932,7 @@
     encodeDocId: encodeDocId,
 
     /**
-     * Accessing the root of a CouchDB instance returns meta information about
+3    * Accessing the root of a CouchDB instance returns meta information about
      * the instance. The response is a JSON structure containing information
      * about the server, including a welcome message and the version of the
      * server.
