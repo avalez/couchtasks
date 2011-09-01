@@ -103,6 +103,24 @@ var Tasks = (function () {
       });
 
       render('home_tpl', '#home_content', {usedTags: tags}, function(dom) {
+
+        if (!Utils.isMobile()) {
+          $('#notelist', dom).sortable({
+            axis:'y',
+            distance:30,
+            start: function(event, ui) {
+              console.log("wtf?");
+              ui.item.attr('data-noclick','true');
+            },
+            stop: function(event, ui) {
+              var index = createIndex(ui.item);
+              if (index !== false) {
+                updateIndex(ui.item.attr('data-id'), index);
+              }
+            }
+          });
+        }
+
         $('#hdr', dom).bind('click', function(e) {
           if ($(e.target).is("a.tag")) {
             addOrRemove(params, $(e.target).data('key'));
@@ -118,13 +136,14 @@ var Tasks = (function () {
 
     var tags = [];
     var doc = docs[details.id];
+    var parsedTags = extractTags(details.notes);
 
     $('.tag_wrapper').find(".tag.active").each(function() {
       tags.push($(this).attr('data-key'));
     });
 
-    doc.tags = tags
-    doc.notes = details.notes;
+    doc.tags = tags.concat(parsedTags.tags);
+    doc.notes = parsedTags.text;
     doc.status = details.completed && details.completed === 'on' ?
       'complete' : 'active';
 
@@ -587,12 +606,16 @@ var Tasks = (function () {
 
 
   function renderTasksList(tasks) {
+
+    tasks.sort(function(a, b) { return a.index < b.index; });
+
     var rendered = $('<div>' +
                      Mustache.to_html($('#rows_tpl').html(), {notes:tasks})
                      + '</div>');
     createCheckBox(rendered);
     initTasksList(rendered);
     $('#notelist').empty().append(rendered.children());
+    $('#notelist').sortable("refresh");
   }
 
 
