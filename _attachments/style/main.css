@@ -334,7 +334,7 @@ footer a:first-child {
 }
 
 .delete, .deleteserver {
-    padding:10px;
+    padding:5px;
     width:16px;
     height:16px;
     background:url(../img/delete.png) no-repeat center center;
