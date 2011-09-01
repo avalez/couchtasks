@@ -180,8 +180,8 @@ input[type=checkbox] {
 
 footer {
     z-index:4;
-    width:100%;
     display:block;
+    margin: 10px;
     height:49px;
     background:#222;
     background:-moz-linear-gradient(center top , #444, #222)
@@ -189,7 +189,8 @@ footer {
     background      : -webkit-gradient(linear, left top, left bottom,
                                        color-stop(0%,#444),
                                        color-stop(100%,#222));
-    border-bottom:1px solid #000;
+    border-radius:10px;
+    border: 1px solid #000;
 }
 
 footer a {
@@ -199,7 +200,7 @@ footer a {
     float:left;
     padding:13px 20px;
     width:24px;
-    height:24px;
+    height:23px;
     font-weight:bold;
     font-size:10px;
     text-decoration:none;
@@ -227,7 +228,7 @@ footer a {
     width:auto;
     font-size:14px;
     position:absolute;
-    right:0px;
+    right:10px;
     border:0px;
     padding:6px;
     margin:9px;
@@ -465,3 +466,5 @@ footer a:first-child {
 
 #edit_task_form .tag { margin-right:10px; opacity:0.3; }
 #edit_task_form .tag.active { opacity:1; }
+
+.complete_tpl #notelist { border-top:0px; }
