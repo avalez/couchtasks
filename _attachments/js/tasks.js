@@ -644,18 +644,22 @@ var Tasks = (function () {
     $.each(tasks, function(_, obj) {
 
       var list = obj.check ? completedlists : todolists;
-      var thisDate = obj.check ? obj.time_completed || today : date;
+      var thisDate = obj.check ? new Date() : date;
       var prefix  = obj.check ? "z" : "";
 
-      if (typeof list[prefix + thisDate.toString()] === 'undefined') {
-        list[prefix + thisDate.toString()] = {
+      if (obj.check && obj.check_at) {
+        thisDate = new Date(obj.check_at);
+      }
+
+      if (typeof list[prefix + thisDate.toDateString()] === 'undefined') {
+        list[prefix + thisDate.toDateString()] = {
           jsonDate: thisDate,
           date:formatDate(thisDate),
           notes: [],
           completed: prefix === 'z'
         };
       }
-      list[prefix + thisDate.toString()].notes.push(obj);
+      list[prefix + thisDate.toDateString()].notes.push(obj);
       if (!obj.check) {
         hour += obj.time_estimate || 1;
       }

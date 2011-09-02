@@ -1,4 +1,7 @@
 function (doc, req) {
   doc.check = JSON.parse(req.query.status);
-    return [doc, "updated"];
+  if (doc.check) {
+    doc.check_at = new Date();
+  }
+  return [doc, "updated"];
 }

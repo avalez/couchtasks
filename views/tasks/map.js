@@ -5,11 +5,12 @@ function(doc) {
       index -= 1000;
     }
     emit(index, {
-      _id:doc._id,
-      _rev:doc._rev,
-      check:doc.check,
+      _id: doc._id,
+      _rev: doc._rev,
+      check: doc.check,
+      check_at: doc.check_at,
       index: index,
-      title:doc.title,
+      title: doc.title,
       tags: doc.tags
     });
   }
