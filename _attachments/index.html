@@ -16,12 +16,12 @@
 
   <body>
 
-    <div id="content"></div>
-
-    <footer>
+    <header>
       <a href="#" class="home"></a>
       <a id="edittask_btn" class="plain_btn active">Save</a>
-    </footer>
+    </header>
+
+    <div id="content"></div>
 
     <script type="text/html" id="home_tpl">
 
@@ -33,8 +33,6 @@
                  placeholder="Add Task" />
         </fieldset>
       </form>
-
-      <!-- <a id="edit_filter">filters</a> -->
 
       <div id="filterui">
         <ul class="tags">
@@ -49,46 +47,6 @@
 
       <div id="infinite_load">loading ...</div>
       <div id="tasks_end">No More Tasks</div>
-
-    </script>
-
-    <script type="text/html" id="complete_tpl">
-      <ul id="notelist">
-        <li class="header"><h3>Completed</h3></li>
-        {{#notes}}
-        <li data-id="{{id}}" data-rev="{{rev}}" data-index="{{index}}"
-            class="task deleted">
-          <input class="checker" type="checkbox" checked="checked" />
-          <a class="title" href="#/task/{{id}}/">{{title}}</span>&nbsp;
-          <a class="delete right">delete</a>
-        </li>
-        {{/notes}}
-        {{^notes}}<li class="none">No Completed Tasks</li>{{/notes}}
-      </ul>
-    </script>
-
-    <script type="text/html" id="addserver_tpl">
-      <form action="#add_server" id="syncform">
-        <fieldset>
-          <input type="text" name="server" placeholder="Host (http://example.com)"
-                 required />
-          <input type="text" name="database" value="couchtasks"
-                 placeholder="mywork" />
-          <input type="text" name="username" placeholder="Username (johndoe)" />
-          <input type="password" name="password" placeholder="Password" />
-        </fieldset>
-      </form>
-
-      <ul id="notelist">
-        {{#servers}}
-        <li data-id="{{id}}" data-rev="{{rev}}" data-server="{{server}}"
-            data-database="{{database}}"
-            data-username="{{username}}" data-password="{{password}}" class="server">
-          {{server}}&nbsp;
-          <a class="deleteserver right">delete</a>
-        </li>
-        {{/servers}}
-      </ul>
 
     </script>
 
@@ -121,22 +79,6 @@
         </fieldset>
         <input type="hidden" name="id" value="{{_id}}" />
       </form>
-    </script>
-
-    <script type="text/html" id="sync_tpl">
-      <ul id="notelist">
-        <li class="header"><h3>Servers</h3></li>
-        {{#servers}}
-        <li data-id="{{id}}" data-rev="{{rev}}" data-server="{{server}}"
-            data-database="{{database}}" data-username="{{username}}"
-            data-password="{{password}}" class="server">
-          {{server}}&nbsp;
-          <div id="feedback"></div>
-          <a class="sync right"><div  />sync</a>
-        </li>
-        {{/servers}}
-        {{^servers}}<li class="none">No Servers</li>{{/servers}}
-      </ul>
     </script>
 
     <script type="text/html" id="rows_tpl">
