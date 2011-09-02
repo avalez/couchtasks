@@ -651,7 +651,7 @@ var Tasks = (function () {
       if (!obj.check) {
         hour += obj.time_estimate || 1;
       }
-      if (hour > 8) {
+      if (hour >= 8) {
         hour = 0;
         date.setDate(date.getDate() - 1);
       }
