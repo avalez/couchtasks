@@ -291,10 +291,6 @@ footer a:first-child {
     display:block;
 }
 
-#notelist {
-    border-top:1px solid #BBB;
-}
-
 #notelist li {
     /* line-height: 35px; */
     border-top:1px solid #EEE;
@@ -468,3 +464,11 @@ footer a:first-child {
 #edit_task_form .tag.active { opacity:1; }
 
 .complete_tpl #notelist { border-top:0px; }
+
+.date {
+    background: #407AA5;
+    color:white;
+    text-align:center;
+    font-size:14px;
+    padding:7px 0px 5px 0px;
+}

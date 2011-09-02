@@ -46,9 +46,9 @@
         </ul>
       </div>
 
-      <ul id="notelist">
-        <li class="none">Loading ...</li>
-      </ul>
+      <div id="notelist">
+      </div>
+
     </script>
 
     <script type="text/html" id="complete_tpl">
@@ -132,8 +132,12 @@
     </script>
 
     <script type="text/html" id="rows_tpl">
-      {{#notes}}
-      <li data-id="{{_id}}" data-rev="{{_rev}}" data-index="{{index}}" class="task  {{#check}}deleted{{/check}}">
+      {{#tasklist}}
+      <ul>
+        <li class="date">{{date}}</li>
+        {{#notes}}
+        <li data-id="{{_id}}" data-rev="{{_rev}}" data-index="{{index}}"
+            class="task  {{#check}}deleted{{/check}}">
         <!-- <table width="100%" cellspacing="0" id="tag_table"> -->
         <!--   {{#tags}}<td class="tag_{{.}}" data-key="{{.}}"></td>{{/tags}} -->
         <!--   {{^tags}}<td class="blank"></td>{{/tags}} -->
@@ -142,13 +146,15 @@
         <input class="checker" type="checkbox" {{#check}}checked="checked"{{/check}}/>
         <a class="title" href="#/task/{{_id}}/">{{title}}
           <!-- <div class="ttag"> -->
-            {{#tags}}<span class="tag tag_{{.}}" data-key="{{.}}">{{.}}</span>{{/tags}}
+          {{#tags}}<span class="tag tag_{{.}}" data-key="{{.}}">{{.}}</span>{{/tags}}
           <!-- </div> -->
         </a>
         <!-- <span class="arrow right">&rsaquo;</span> -->
 
         </li>
-      {{/notes}}
+        {{/notes}}
+      </ul>
+      {{/tasklist}}
     </script>
 
     <script type="text/html" id="tags_tpl">

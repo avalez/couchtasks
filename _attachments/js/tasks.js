@@ -98,23 +98,6 @@ var Tasks = (function () {
     current_tags = $.grep(t.split(','), function(x) { return x !== ''; });
 
     render('home_tpl', '#home_content', {}, function(dom) {
-
-      if (!Utils.isMobile()) {
-        $('#notelist', dom).sortable({
-          axis:'y',
-          distance:30,
-          start: function(event, ui) {
-            ui.item.attr('data-noclick','true');
-          },
-          stop: function(event, ui) {
-            var index = createIndex(ui.item);
-            if (index !== false) {
-              updateIndex(ui.item.attr('data-id'), index);
-            }
-          }
-        });
-      }
-
       $('#hdr', dom).bind('click', function(e) {
         if ($(e.target).is("a.tag")) {
           addOrRemove(current_tags, $(e.target).data('key'));
@@ -633,12 +616,52 @@ var Tasks = (function () {
   }
 
 
+  function formatDate(date) {
+    var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+                'Friday', 'Saturday'];
+    var months = ['January', 'February', 'March', 'April', 'May', 'June',
+                  'July', 'August', 'September', 'October', 'November',
+                  'December'];
+    var day = date.getDate();
+    var prefix = (day === 1) ? 'st' :
+      (day === 2) ? 'nd' :
+      (day === 3) ? 'rd' : 'th';
+    return days[date.getDay()] +
+      " " + date.getDate() + prefix + " of " + months[date.getMonth()];
+  }
+
+
   function renderTasksList(tasks) {
 
     tasks.sort(function(a, b) { return a.index < b.index; });
 
+    var date = new Date();
+    var lists = {};
+    var hour = 0;
+
+    $.each(tasks, function(_, obj) {
+      if (typeof lists[date.toString()] === 'undefined') {
+        lists[date.toString()] = {date:formatDate(date), notes: []};
+      }
+      lists[date.toString()].notes.push(obj);
+      hour += obj.time_estimate || 1;
+      if (hour > 8) {
+        hour = 0;
+        date.setDate(date.getDate() - 1);
+      }
+    });
+
+    var obj = {
+      tasklist: [
+      ]
+    };
+
+    for (var x in lists) {
+      obj.tasklist.push(lists[x]);
+    }
+
     var rendered =
-      $('<div>' + Mustache.to_html($('#rows_tpl').html(), {notes:tasks}) + '</div>');
+      $('<div>' + Mustache.to_html($('#rows_tpl').html(), obj) + '</div>');
     createCheckBox(rendered);
     initTasksList(rendered);
 
@@ -656,7 +679,24 @@ var Tasks = (function () {
 
     $('#hdr').empty().append(renderedTags.children());
     $('#notelist').empty().append(rendered.children());
-    $('#notelist').sortable("refresh");
+
+    if (!Utils.isMobile()) {
+      $('#notelist ul').sortable({
+        axis:'y',
+        distance:30,
+        start: function(event, ui) {
+          ui.item.attr('data-noclick','true');
+        },
+        stop: function(event, ui) {
+          var index = createIndex(ui.item);
+          if (index !== false) {
+            updateIndex(ui.item.attr('data-id'), index);
+          }
+        }
+      });
+    }
+
+    //$('#notelist').sortable("refresh");
   }
 
 
