@@ -476,3 +476,9 @@ footer a:first-child {
 .date.completed {
     background:#EB563E;
 }
+
+#infinite_load, #tasks_end {
+    padding:30px;
+    display:none;
+    text-align:center;
+}

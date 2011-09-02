@@ -158,6 +158,7 @@ var Tasks = (function () {
   function infiniteScroll() {
     if  ($(window).scrollTop() == $(document).height() - $(window).height()){
       currentLimit += 20;
+      $("#infinite_load").show();
       viewCache = {};
       updateTaskList();
     }
@@ -581,7 +582,7 @@ var Tasks = (function () {
               $(window).unbind('scroll', infiniteScroll);
             }
             tasks = getValues(data.rows);
-            renderTasksList(tasks);
+            renderTasksList(tasks, data.total_rows < currentLimit);
           }
         });
       } else {
@@ -631,7 +632,7 @@ var Tasks = (function () {
   }
 
 
-  function renderTasksList(tasks) {
+  function renderTasksList(tasks, end) {
 
     tasks.sort(function(a, b) { return a.index < b.index; });
 
@@ -698,6 +699,11 @@ var Tasks = (function () {
 
     $('#hdr').empty().append(renderedTags.children());
     $('#notelist').empty().append(rendered.children());
+
+    $("#infinite_load").hide();
+    if (end) {
+      $('#tasks_end').show();
+    }
 
     if (!Utils.isMobile()) {
       $('#notelist ul').sortable({
