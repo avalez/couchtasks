@@ -434,7 +434,7 @@ var Tasks = (function () {
       return;
     }
 
-    var top = $('#notelist li:first-child');
+    var top = $('#notelist li:not(.date)').first();
     var index = parseInt(top.attr('data-index'), 10) + 1 || 1;
 
     $db.saveDoc({
@@ -636,25 +636,28 @@ var Tasks = (function () {
     tasks.sort(function(a, b) { return a.index < b.index; });
 
     var date = new Date();
+    var today = new Date();
     var lists = {};
     var hour = 0;
 
     $.each(tasks, function(_, obj) {
-      if (typeof lists[date.toString()] === 'undefined') {
-        lists[date.toString()] = {date:formatDate(date), notes: []};
+      var thisDate = obj.check ? obj.time_completed || today : date;
+      var prefix  = obj.check ? "z" : "";
+
+      if (typeof lists[prefix + thisDate.toString()] === 'undefined') {
+        lists[prefix + thisDate.toString()] = {date:formatDate(thisDate), notes: []};
       }
-      lists[date.toString()].notes.push(obj);
-      hour += obj.time_estimate || 1;
+      lists[prefix + thisDate.toString()].notes.push(obj);
+      if (!obj.check) {
+        hour += obj.time_estimate || 1;
+      }
       if (hour > 8) {
         hour = 0;
         date.setDate(date.getDate() - 1);
       }
     });
 
-    var obj = {
-      tasklist: [
-      ]
-    };
+    var obj = {tasklist: []};
 
     for (var x in lists) {
       obj.tasklist.push(lists[x]);
