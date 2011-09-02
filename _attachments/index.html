@@ -134,7 +134,7 @@
     <script type="text/html" id="rows_tpl">
       {{#tasklist}}
       <ul>
-        <li class="date">{{date}}</li>
+        <li class="date {{#completed}}completed{{/completed}}">{{date}}</li>
         {{#notes}}
         <li data-id="{{_id}}" data-rev="{{_rev}}" data-index="{{index}}"
             class="task  {{#check}}deleted{{/check}}">
