@@ -697,6 +697,7 @@ var Tasks = (function () {
 
     if (!Utils.isMobile()) {
       $('#notelist ul').sortable({
+        connectWith: $('#notelist ul'),
         items: 'li:not(.date)',
         axis:'y',
         distance:30,
@@ -711,8 +712,6 @@ var Tasks = (function () {
         }
       });
     }
-
-    //$('#notelist').sortable("refresh");
   }
 
 
