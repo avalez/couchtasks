@@ -172,7 +172,7 @@ var Tasks = (function () {
   router.post('add_task', function (e, details) {
     newTask(details.title, details.notes, function () {
       viewCache = {};
-      router.refresh();
+      //router.refresh();
     });
   });
 
@@ -388,8 +388,9 @@ var Tasks = (function () {
     $db.saveDoc({
       "type":"task",
       index: index,
+      created_at: new Date(),
       "status":"active",
-      "title":title,
+      text:title,
       "tags":[],
       "notes":notes
     }, {
@@ -519,8 +520,8 @@ var Tasks = (function () {
 
   function startCounter() {
 
-    //var opts = {filter:"grocery/design_docs", continuous:true};
-    //$.couch.replicate(mainDb, hostCouch, {error:function() {}}, opts);
+    var opts = {continuous:true};
+    $.couch.replicate(mainDb, hostCouch, {error:function() {}}, opts);
     //$.couch.replicate(hostCouch, mainDb, {error:function() {}}, opts);
 
     $changes = $db.changes();
