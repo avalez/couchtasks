@@ -32,10 +32,16 @@ var Tasks = (function () {
   var current_tags = [];
   var myChanges = [];
   var globalTags = [];
+  var currentLimit = 20;
+
 
   router.get('#/?', function (_, t) {
+    $(window).bind('scroll', infiniteScroll);
     router.forward('#/tags/');
+  }).unload(function() {
+    $(window).unbind('scroll', infiniteScroll);
   });
+
 
   router.get('#/add_server/', function () {
     $db.view('couchtasks/servers').then(function (data) {
@@ -74,7 +80,7 @@ var Tasks = (function () {
         });
 
         docs[doc._id] = $.extend({}, doc);
-        doc.completed = doc.status === "complete" ? 'checked="checked"' : '';
+        doc.completed = doc.check ? 'checked="checked"' : '';
         doc.usedTags = t;
         render('task_tpl', null, doc, function(dom) {
           $('.tag_wrapper', dom).bind('click', function(e) {
@@ -120,6 +126,7 @@ var Tasks = (function () {
 
   });
 
+
   router.post('#edit', function (_, e, details) {
 
     var tags = [];
@@ -132,8 +139,7 @@ var Tasks = (function () {
 
     doc.tags = tags.concat(parsedTags.tags);
     doc.notes = parsedTags.text;
-    doc.status = details.completed && details.completed === 'on' ?
-      'complete' : 'active';
+    doc.check = details.completed && details.completed === 'on';
 
     $db.saveDoc(doc, {
       success: function () {
@@ -164,6 +170,15 @@ var Tasks = (function () {
       $('#add_task_input').val('');
     });
   });
+
+
+  function infiniteScroll() {
+    if  ($(window).scrollTop() == $(document).height() - $(window).height()){
+      currentLimit += 20;
+      viewCache = {};
+      updateTaskList();
+    }
+  };
 
 
   function addOrRemove(arr, key) {
@@ -217,7 +232,7 @@ var Tasks = (function () {
 
   function markDone(e) {
 
-    var status = $(this).is(':checked') ? 'complete' : 'active';
+    var status = $(this).is(':checked') ? true : false;
     var li = $(e.target).parents("li");
     var id = li.attr("data-id");
     var url = '/' + mainDb + '/_design/couchtasks/_update/update_status/' + id +
@@ -233,14 +248,14 @@ var Tasks = (function () {
       success: function() {
         viewCache = {};
         if (current_tpl !== 'home_tpl') {
-          if (status === 'complete') {
+          if (status) {
             li.addClass('deleted');
           } else {
             li.removeClass('deleted');
           }
         } else {
           var ul = li.parent("ul");
-          if (status === 'complete') {
+          if (status) {
             li.detach();
             li.addClass('deleted');
             li.appendTo(ul);
@@ -442,7 +457,7 @@ var Tasks = (function () {
     $db.saveDoc({
       type: 'task',
       index: index,
-      status: 'active',
+      check: false,
       title: title,
       tags: tags,
       notes: notes
@@ -577,7 +592,11 @@ var Tasks = (function () {
       if (!current_tags.length) {
         view('couchtasks/tasks', {
           descending: true,
+          limit: currentLimit,
           success : function (data) {
+            if (data.total_rows < currentLimit) {
+              $(window).unbind('scroll', infiniteScroll);
+            }
             tasks = getValues(data.rows);
             renderTasksList(tasks);
           }

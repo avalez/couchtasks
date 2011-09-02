@@ -20,7 +20,7 @@
 
     <footer>
       <a href="#" class="home"></a>
-      <a href="#/complete/" class="archive"></a>
+      <!-- <a href="#/complete/" class="archive"></a> -->
 
       <a id="edittask_btn" class="plain_btn active">Save</a>
     </footer>
@@ -133,13 +133,13 @@
 
     <script type="text/html" id="rows_tpl">
       {{#notes}}
-      <li data-id="{{_id}}" data-rev="{{_rev}}" data-index="{{index}}" class="task">
+      <li data-id="{{_id}}" data-rev="{{_rev}}" data-index="{{index}}" class="task  {{#check}}deleted{{/check}}">
         <!-- <table width="100%" cellspacing="0" id="tag_table"> -->
         <!--   {{#tags}}<td class="tag_{{.}}" data-key="{{.}}"></td>{{/tags}} -->
         <!--   {{^tags}}<td class="blank"></td>{{/tags}} -->
         <!-- </table> -->
 
-        <input class="checker" type="checkbox" />
+        <input class="checker" type="checkbox" {{#check}}checked="checked"{{/check}}/>
         <a class="title" href="#/task/{{_id}}/">{{title}}
           <!-- <div class="ttag"> -->
             {{#tags}}<span class="tag tag_{{.}}" data-key="{{.}}">{{.}}</span>{{/tags}}

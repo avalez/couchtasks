@@ -1,4 +1,4 @@
 function (doc, req) {
-    doc.status = req.query.status;
+  doc.check = JSON.parse(req.query.status);
     return [doc, "updated"];
 }
