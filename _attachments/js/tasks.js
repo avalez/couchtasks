@@ -637,17 +637,25 @@ var Tasks = (function () {
 
     var date = new Date();
     var today = new Date();
-    var lists = {};
+    var todolists = {};
+    var completedlists = {};
     var hour = 0;
 
     $.each(tasks, function(_, obj) {
+
+      var list = obj.check ? completedlists : todolists;
       var thisDate = obj.check ? obj.time_completed || today : date;
       var prefix  = obj.check ? "z" : "";
 
-      if (typeof lists[prefix + thisDate.toString()] === 'undefined') {
-        lists[prefix + thisDate.toString()] = {date:formatDate(thisDate), notes: []};
+      if (typeof list[prefix + thisDate.toString()] === 'undefined') {
+        list[prefix + thisDate.toString()] = {
+          jsonDate: thisDate,
+          date:formatDate(thisDate),
+          notes: [],
+          completed: prefix === 'z'
+        };
       }
-      lists[prefix + thisDate.toString()].notes.push(obj);
+      list[prefix + thisDate.toString()].notes.push(obj);
       if (!obj.check) {
         hour += obj.time_estimate || 1;
       }
@@ -659,9 +667,13 @@ var Tasks = (function () {
 
     var obj = {tasklist: []};
 
-    for (var x in lists) {
-      obj.tasklist.push(lists[x]);
+    for (var x in todolists) {
+      obj.tasklist.push(todolists[x]);
     }
+    for (var x in completedlists) {
+      obj.tasklist.push(completedlists[x]);
+    }
+
 
     var rendered =
       $('<div>' + Mustache.to_html($('#rows_tpl').html(), obj) + '</div>');
