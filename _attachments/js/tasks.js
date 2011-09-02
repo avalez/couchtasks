@@ -685,6 +685,7 @@ var Tasks = (function () {
 
     if (!Utils.isMobile()) {
       $('#notelist ul').sortable({
+        items: 'li:not(.date)',
         axis:'y',
         distance:30,
         start: function(event, ui) {
