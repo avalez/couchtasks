@@ -79,8 +79,22 @@ var Tasks = (function () {
           };
         });
 
+        var estimates = [
+          {value: 10, text:"10 Minutes"},
+          {value: 30, text:"30 Minutes"},
+          {value: 60, text:"1 Hour"},
+          {value: 120, text:"2 Hours"},
+          {value: 240, text:"4 Hours"}
+        ];
+        for (var x in estimates) {
+          if (estimates[x].value === (doc.estimate || 60)) {
+            estimates[x].selected = true;
+          }
+        }
+
         docs[doc._id] = $.extend({}, doc);
         doc.completed = doc.check ? 'checked="checked"' : '';
+        doc.estimates = estimates;
         doc.usedTags = t;
         render('task_tpl', null, doc, function(dom) {
           $('.tag_wrapper', dom).bind('click', function(e) {
@@ -120,6 +134,7 @@ var Tasks = (function () {
       tags.push($(this).attr('data-key'));
     });
 
+    doc.estimate = parseInt(details.estimate, 10);
     doc.tags = tags.concat(parsedTags.tags);
     doc.notes = parsedTags.text;
     doc.check = details.completed && details.completed === 'on';
@@ -642,11 +657,14 @@ var Tasks = (function () {
     var completedlists = {};
     var hour = 0;
 
+
     $.each(tasks, function(_, obj) {
 
       var list = obj.check ? completedlists : todolists;
       var thisDate = obj.check ? new Date() : date;
       var prefix  = obj.check ? "z" : "";
+
+      obj.estimate = obj.estimate || 60;
 
       if (obj.check && obj.check_at) {
         thisDate = new Date(obj.check_at);
@@ -662,9 +680,9 @@ var Tasks = (function () {
       }
       list[prefix + thisDate.toDateString()].notes.push(obj);
       if (!obj.check) {
-        hour += obj.time_estimate || 1;
+        hour += obj.estimate;
       }
-      if (hour >= 8) {
+      if (hour >= (8 * 60)) {
         hour = 0;
         date.setDate(date.getDate() - 1);
       }

@@ -99,13 +99,20 @@
           <div class="textarea">
             <textarea placeholder="Enter Notes" name="notes">{{notes}}</textarea>
           </div>
-          <!-- <input type="text" name="tags" value="{{tags}}" placeholder="Tags" /> -->
           <div class="textarea tag_wrapper" style="overflow:auto;">
             {{#usedTags}}
-            <a class="tag tag_{{tag}} {{#active}}active{{/active}}" data-key="{{tag}}">
+            <a class="tag tag_{{tag}} {{#active}}active{{/active}}"
+               data-key="{{tag}}">
               {{tag}}({{count}})
             </a>
             {{/usedTags}}
+          </div>
+          <div class="input select">
+            <select name="estimate">
+              {{#estimates}}
+              <option value="{{value}}" {{#selected}}selected{{/selected}}>{{text}}</option>
+              {{/estimates}}
+            </select>
           </div>
           <div class="input">
             <input type="checkbox" {{completed}} name="completed" />
@@ -139,18 +146,11 @@
         {{#notes}}
         <li data-id="{{_id}}" data-rev="{{_rev}}" data-index="{{index}}"
             class="task  {{#check}}deleted{{/check}}">
-        <!-- <table width="100%" cellspacing="0" id="tag_table"> -->
-        <!--   {{#tags}}<td class="tag_{{.}}" data-key="{{.}}"></td>{{/tags}} -->
-        <!--   {{^tags}}<td class="blank"></td>{{/tags}} -->
-        <!-- </table> -->
 
         <input class="checker" type="checkbox" {{#check}}checked="checked"{{/check}}/>
         <a class="title" href="#/task/{{_id}}/">{{title}}
-          <!-- <div class="ttag"> -->
           {{#tags}}<span class="tag tag_{{.}}" data-key="{{.}}">{{.}}</span>{{/tags}}
-          <!-- </div> -->
         </a>
-        <!-- <span class="arrow right">&rsaquo;</span> -->
 
         </li>
         {{/notes}}

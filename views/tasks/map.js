@@ -9,6 +9,7 @@ function(doc) {
       _rev: doc._rev,
       check: doc.check,
       check_at: doc.check_at,
+      estimate: doc.estimate || 60,
       index: index,
       title: doc.title,
       tags: doc.tags

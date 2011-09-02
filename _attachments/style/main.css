@@ -1,8 +1,8 @@
-* {
-    margin:0px;
-    padding:0px;
-    border:0px;
-}
+/* * { */
+/*     margin:0px; */
+/*     padding:0px; */
+/*     border:0px; */
+/* } */
 
 body {
     background:#e9e7e4;
@@ -10,7 +10,7 @@ body {
     /* overflow-y:scroll; */
 }
 
-body, p {
+body, p, select {
     font:1em Helvetica, arial, sans-serif;
     color:#222;
 }
@@ -482,3 +482,15 @@ footer a:first-child {
     display:none;
     text-align:center;
 }
+
+/* select { font-size: 1em;font-weight: bold; margin-right: .5em; } */
+/* select {  background:#999; width: 100%; border: 1px solid #666; line-height: 1.8em; text-indent: .1em; color: #fff;  } */
+
+/* select { font-size:1em; padding:3px; } */
+
+.select { padding:0 10px; }
+
+fieldset { padding:0px; }
+html, body { margin:0px; padding:0px; }
+ul { padding:0px; margin:0px;  }
+h3 { margin:0px; }
