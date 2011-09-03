@@ -1,5 +1,6 @@
 function(doc) {
   if (doc.type && doc.type === 'task') {
-    emit(doc.index || 0, null);
+    var prefix = doc.check ? 'a' : 'z';
+    emit([prefix, doc.index] || 0, null);
   }
 };
