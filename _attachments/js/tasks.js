@@ -46,10 +46,10 @@ var Tasks = (function () {
   var $db = $.couch.db(dbName);
   var $changes;
 
-  var paneWidth = 0;
   var router = Router();
+
+  var paneWidth = 0;
   var current_tpl = null;
-  var tags = [];
   var currentOffset = 0;
   var lastPane = null;
   var current_tags = [];
@@ -66,7 +66,7 @@ var Tasks = (function () {
 
 
   router.get('#/task/:id/', function (_, id) {
-    getTags(function() {
+    getTags(function(tags) {
 
       $db.openDoc(id).then(function(doc) {
 
@@ -124,7 +124,7 @@ var Tasks = (function () {
       var tags = [];
       var parsedTags = extractTags(details.title);
 
-      $('.tag_wrapper').find(".tag.active").each(function() {
+      $('.tag_wrapper .tag.active').each(function() {
         tags.push($(this).attr('data-key'));
       });
 
@@ -143,10 +143,26 @@ var Tasks = (function () {
 
 
   router.post('#add_task', function (_, e, details) {
+
     var doc = extractTags(details.title);
-    newTask(doc.text, '', doc.tags, function (data) {
+    var top = $('#tasks_wrapper li:not(.date)').first();
+    var index = top.data('index') + 1 || 1;
+
+    if(doc.text === '') {
+      return;
+    }
+
+    $db.saveDoc({
+      type: 'task',
+      index: index,
+      check: false,
+      title: doc.text,
+      tags: doc.tags,
+      notes: ''
+    }).then(function (data) {
       $('#add_task_input').val('');
     });
+
   });
 
 
@@ -340,27 +356,6 @@ var Tasks = (function () {
   }
 
 
-  function newTask(title, notes, tags, callback) {
-
-    if(title === '') {
-      $('input[name=title]').addClass('formerror');
-      return;
-    }
-
-    var top = $('#tasks_wrapper li:not(.date)').first();
-    var index = top.data('index') + 1 || 1;
-
-    $db.saveDoc({
-      type: 'task',
-      index: index,
-      check: false,
-      title: title,
-      tags: tags,
-      notes: notes
-    }).then(callback);
-  }
-
-
   function extractTags(text) {
     var tags = $.map(text.match(/\#([\w\-\.]*[\w]+[\w\-\.]*)/g) || [],
                      function(tag) { return tag.slice(1); });
@@ -387,7 +382,7 @@ var Tasks = (function () {
 
 
   function updateTaskList() {
-    getTags(function() {
+    getTags(function(tags) {
       if (!current_tags.length) {
         $db.view('couchtasks/tasks', {
           descending: true,
@@ -397,7 +392,7 @@ var Tasks = (function () {
               $(window).unbind('scroll', infiniteScroll);
             }
             tasks = getValues(data.rows);
-            renderTasksList(tasks, data.total_rows < currentLimit);
+            renderTasksList(tasks, tags, data.total_rows < currentLimit);
           }
         });
       } else {
@@ -425,7 +420,7 @@ var Tasks = (function () {
               }
             });
           });
-          renderTasksList(tasks);
+          renderTasksList(tasks, tags);
         });
       }
     });
@@ -433,16 +428,14 @@ var Tasks = (function () {
 
 
   function formatDate(date) {
-    var day = date.getDate();
-    var prefix = (day === 1) ? 'st' :
-      (day === 2) ? 'nd' :
-      (day === 3) ? 'rd' : 'th';
-    return days[date.getDay()] +
-      " " + date.getDate() + prefix + " of " + months[date.getMonth()];
+    var d = date.getDate();
+    var prefix = (d === 1) ? 'st' : (d === 2) ? 'nd' : (d === 3) ? 'rd' : 'th';
+    return days[date.getDay()] + " " + date.getDate() + prefix +
+      " of " + months[date.getMonth()];
   }
 
 
-  function renderTasksList(tasks, end) {
+  function renderTasksList(tasks, tags, end) {
 
     tasks.sort(function(a, b) { return b.index - a.index; });
 
@@ -537,20 +530,9 @@ var Tasks = (function () {
   }
 
 
-  $(window).bind('resize', function () {
-    paneWidth = $('body').width();
-  }).trigger('resize');
-
-
-  $('#save_task_btn').bind('click', function (e) {
-    $('#edit_task_form').trigger('submit');
-  });
-
-
   function getTags(callback) {
     $db.view('couchtasks/tags', {group: true}).then(function(data) {
-      var x, tag, i = 0, css = [];
-      tags = [];
+      var x, tag, i = 0, css = [], tags = [];
       for (x in data.rows) {
         tag = data.rows[x].key[0]
         css.push('.tag_' + tag + ' { background: ' + tagColors[i++] + ' }');
@@ -558,11 +540,10 @@ var Tasks = (function () {
       }
 
       $("#tag_defs").html(css.join('\n'));
-      callback();
+      callback(tags);
     });
   };
 
-  router.init(window);
 
   function startUpdater() {
 
@@ -588,6 +569,18 @@ var Tasks = (function () {
     });
   }
 
+
+  $(window).bind('resize', function () {
+    paneWidth = $('body').width();
+  }).trigger('resize');
+
+
+  $('#save_task_btn').bind('click', function (e) {
+    $('#edit_task_form').trigger('submit');
+  });
+
+
   setTimeout(startUpdater, 1000);
+  router.init(window);
 
 })();
