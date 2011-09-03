@@ -281,6 +281,7 @@ header a:first-child {
     white-space: nowrap;
     display: block;
     padding: 10px 0px 10px 0px;
+    overflow: auto;
 }
 
 .title {
@@ -294,6 +295,7 @@ header a:first-child {
 .task_tag_wrapper {
     width: 90px;
     float: right;
+    margin-top: -10px;
 }
 
 .delete,
@@ -342,7 +344,7 @@ header a:first-child {
     float: right;
     display: block;
     margin-right: 5px;
-    margin-bottom:10px;
+    margin-top:10px;
     max-width:35px;
     overflow:hidden;
 }
