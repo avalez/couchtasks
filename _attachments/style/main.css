@@ -10,8 +10,8 @@ h3 {
 
 body {
     background: #e9e7e4;
-    /* overflow-x:hidden; */
-    /* overflow-y:scroll; */
+    overflow-x:hidden;
+    overflow-y:scroll;
 }
 
 body,
