@@ -19,7 +19,6 @@ var Tasks = (function () {
   var paneWidth = 0;
   var router = Router();
   var current_tpl = null;
-  var docs = {};
   var tags = [];
   var currentOffset = 0;
   var lastPane = null;
@@ -63,7 +62,6 @@ var Tasks = (function () {
           }
         }
 
-        docs[doc._id] = $.extend({}, doc);
         doc.completed = doc.check ? 'checked="checked"' : '';
         doc.estimates = estimates;
         doc.usedTags = t;
@@ -97,24 +95,26 @@ var Tasks = (function () {
 
   router.post('#edit', function (_, e, details) {
 
-    var tags = [];
-    var doc = docs[details.id];
-    var parsedTags = extractTags(details.title);
+    $db.openDoc(details.id).then(function(doc) {
 
-    $('.tag_wrapper').find(".tag.active").each(function() {
-      tags.push($(this).attr('data-key'));
-    });
+      var tags = [];
+      var parsedTags = extractTags(details.title);
 
-    doc.estimate = parseInt(details.estimate, 10);
-    doc.tags = tags.concat(parsedTags.tags);
-    doc.title = parsedTags.text;
-    doc.notes = details.notes;
-    doc.check = details.completed && details.completed === 'on';
+      $('.tag_wrapper').find(".tag.active").each(function() {
+        tags.push($(this).attr('data-key'));
+      });
 
-    $db.saveDoc(doc, {
-      success: function () {
+      doc.estimate = parseInt(details.estimate, 10);
+      doc.tags = tags.concat(parsedTags.tags);
+      doc.title = parsedTags.text;
+      doc.notes = details.notes;
+      doc.check = details.completed && details.completed === 'on';
+
+      $db.saveDoc(doc).then(function() {
         router.back();
-      }});
+      });
+
+    });
   });
 
 
