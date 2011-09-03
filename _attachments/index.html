@@ -3,8 +3,7 @@
   <head>
 
     <meta charset="utf-8" />
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no;">
+    <meta name="viewport" content="width=device-width, user-scalable=no;" />
 
     <title>CouchTasks</title>
     <link rel="stylesheet" href="style/main.css">
@@ -16,48 +15,47 @@
 
   <body>
 
+
     <header>
       <a href="#" class="home"></a>
-      <a id="edittask_btn" class="plain_btn active">Save</a>
+      <button id="save_task_btn" class="active">Save</button>
     </header>
 
     <div id="content"></div>
 
+
     <script type="text/html" id="home_tpl">
 
-      <div id="hdr">&nbsp;</div>
+      <div id="filter_tags"></div>
 
-      <form action="#add_task" id="add_task_frm">
+      <form action="#add_task">
         <fieldset>
           <input type="text" name="title" id="add_task_input"
                  placeholder="Add Task" />
         </fieldset>
       </form>
 
-      <div id="filterui">
-        <ul class="tags">
-          {{#tags}}
-          <li class="{{class}}"><a data-key="{{tag}}">{{tag}}({{count}})</a></li>
-          {{/tags}}
-        </ul>
-      </div>
-
-      <div id="notelist">
-      </div>
+      <div id="tasks_wrapper"></div>
 
       <div id="infinite_load">loading ...</div>
       <div id="tasks_end">No More Tasks</div>
 
     </script>
 
+
     <script type="text/html" id="task_tpl">
-      <h3>{{title}}</h3>
+
       <form action="#edit" id="edit_task_form">
+        <input type="hidden" name="id" value="{{_id}}" />
         <fieldset>
+
+          <input type="text" name="title" value="{{title}}" />
+
           <div class="textarea">
             <textarea placeholder="Enter Notes" name="notes">{{notes}}</textarea>
           </div>
-          <div class="textarea tag_wrapper" style="overflow:auto;">
+
+          <div class="input tag_wrapper">
             {{#usedTags}}
             <a class="tag tag_{{tag}} {{#active}}active{{/active}}"
                data-key="{{tag}}">
@@ -65,40 +63,59 @@
             </a>
             {{/usedTags}}
           </div>
+
           <div class="input select">
             <select name="estimate">
               {{#estimates}}
-              <option value="{{value}}" {{#selected}}selected{{/selected}}>{{text}}</option>
+              <option value="{{value}}"
+                      {{#selected}}selected{{/selected}}>
+                {{text}}
+              </option>
               {{/estimates}}
             </select>
           </div>
+
           <div class="input">
             <input type="checkbox" {{completed}} name="completed" />
             <label>Completed</label>
           </div>
+
         </fieldset>
-        <input type="hidden" name="id" value="{{_id}}" />
       </form>
+
     </script>
+
 
     <script type="text/html" id="rows_tpl">
       {{#tasklist}}
       <ul>
         <li class="date {{#completed}}completed{{/completed}}">{{date}}</li>
+
         {{#notes}}
         <li data-id="{{_id}}" data-rev="{{_rev}}" data-index="{{index}}"
-            class="task  {{#check}}deleted{{/check}}">
+            class="task {{#check}}deleted{{/check}}">
 
-        <input class="checker" type="checkbox" {{#check}}checked="checked"{{/check}}/>
-        <a class="title" href="#/task/{{_id}}/">{{title}}
-          {{#tags}}<span class="tag tag_{{.}}" data-key="{{.}}">{{.}}</span>{{/tags}}
-        </a>
+          <input class="checker" type="checkbox"
+                 {{#check}}checked="checked"{{/check}} />
+
+          <a class="task_link" href="#/task/{{_id}}/">
+
+            <div class="task_tag_wrapper">
+            {{#tags}}
+            <span class="tag tag_{{.}}" data-key="{{.}}">{{.}}</span>
+            {{/tags}}
+            </div>
+
+            <span class="title">{{title}}</span>&nbsp;
+          </a>
 
         </li>
         {{/notes}}
+
       </ul>
       {{/tasklist}}
     </script>
+
 
     <script type="text/html" id="tags_tpl">
       {{#tags}}
@@ -108,15 +125,13 @@
       {{/tags}}
     </script>
 
+
   </body>
 
   <script src="./js/jquery-1.6.min.js"></script>
-
   <script src="./js/jquery-ui-1.8.10.custom.min.js"></script>
   <script src="./js/jquery.couch.js"></script>
-
   <script src="./js/router.js"></script>
-
   <script src="./js/mustache.js"></script>
   <script src="./js/utils.js"></script>
   <script src="./js/tasks.js"></script>

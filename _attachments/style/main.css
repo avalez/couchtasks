@@ -1,4 +1,9 @@
-html, body, fieldset, ul, h3 {
+/* Global Tags */
+html,
+body,
+fieldset,
+ul,
+h3 {
     margin: 0px;
     padding: 0px;
 }
@@ -9,7 +14,11 @@ body {
     /* overflow-y:scroll; */
 }
 
-body, p, select, input, textarea {
+body,
+p,
+select,
+input,
+textarea {
     font: 1em Helvetica, arial, sans-serif;
     color: #222;
 }
@@ -28,15 +37,14 @@ h3 {
     text-shadow: 1px 1px 1px #FFF;
 }
 
+/* Forms */
 form {
     padding: 10px;
 }
 
-.select {
-    padding: 0 10px;
-}
-
-input[type=text],input[type=password], textarea {
+input[type=text],
+input[type=password],
+textarea {
     width: 100%;
     display: block;
     padding: 10px;
@@ -51,16 +59,31 @@ input[type=text],input[type=password], textarea {
     outline: none;
 }
 
-input[type=text]:focus, input[type=password]:focus, textarea:focus {
-    -webkit-appearance: none;
-    -webkit-focus-ring-color: rgba(0, 0, 0, 0);
-    outline: none;
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+button {
+    background: -moz-linear-gradient(center top , #555, #333);
+    background: -webkit-gradient(linear, 0% 40%, 0% 70%, from(#555), to(#333));
+
+    opacity: 1;
+    font-size: 14px;
+    border: 0px;
+    line-height: 27px;
+    margin: 9px;
+    height: auto;
+    border: 1px solid #000;
+    border-radius: 5px;
+    color: #999;
+    text-shadow: 1px 1px 1px #000;
+    letter-spacing: 1.1px;
+    cursor: pointer;
 }
 
-.textarea {
-    padding: 10px;
+button.active {
+    background: -moz-linear-gradient(center top , #B8DB29, #5A8F00) repeat scroll 0 0 transparent;
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#B8DB29), color-stop(100%,#5A8F00));
+
+    color: white;
 }
+
 textarea {
     padding: 0px;
     height: 140px;
@@ -77,13 +100,17 @@ fieldset {
     margin-bottom: 0px;
 }
 
-fieldset input:first-child, fieldset .textarea:first-child {
+fieldset input:first-child {
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
     border-top: 0px !important;
 }
 
-fieldset input:last-child, fieldset textarea:last-child {
+fieldset .textarea:first-child {
+    border-top: 0px !important;
+}
+
+fieldset input:last-child {
     border-bottom-left-radius: 15px;
     border-bottom-right-radius: 15px;
 }
@@ -95,10 +122,27 @@ fieldset .textarea {
     border-top: 1px solid #CCC;
 }
 
+::-webkit-input-placeholder {
+    color: #BBB;
+}
+
+:-moz-placeholder {
+    color: #BBB;
+}
+
 div.input {
     line-height: 37px;
 }
 
+.textarea {
+    padding: 10px;
+}
+
+.select {
+    padding: 0 10px;
+}
+
+/* Custom Checkboxes */
 input[type=checkbox] {
     display: none;
 }
@@ -116,25 +160,17 @@ input[type=checkbox] {
     height: 100%;
     height: 16px;
     float: left;
-    padding: 5px 10px 0px 10px;
+    padding: 10px 10px 0px 10px;
     -webkit-tap-highlight-color: rgba(0,0,0,0);
     -webkit-appearance: none;
     -moz-appearance: none;
 }
 
-.checkbox.checked div{
+.checkbox.checked div {
     background-image: url(../img/checked.png);
 }
 
-::-webkit-input-placeholder {
-    color: #BBB;
-}
-
-:-moz-placeholder {
-    color: #BBB;
-}
-
-/* LAYOUT */
+/* Main Layout */
 #content {
     position: relative;
     -webkit-transition: all 0.5s ease-in-out;
@@ -162,11 +198,8 @@ header {
     margin: 10px 10px 0px 10px;
     height: 49px;
     background: #222;
-    background: -moz-linear-gradient(center top , #444, #222)
-       repeat scroll 0 0 transparent;
-    background: -webkit-gradient(linear, left top, left bottom,
-                                       color-stop(0%,#444),
-                                       color-stop(100%,#222));
+    background: -moz-linear-gradient(center top , #444, #222) repeat scroll 0 0 transparent;
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#444), color-stop(100%,#222));
     border-radius: 10px;
     border: 1px solid #000;
 }
@@ -197,65 +230,41 @@ header a {
     background-image:url(../img/home.png);
 }
 
-.plain_btn {
-    background: -moz-linear-gradient(center top , #555, #333);
-    background: -webkit-gradient(linear, 0% 40%, 0% 70%, from(#555), to(#333));
+.home_tpl .home {
     opacity: 1;
-    width: auto;
-    font-size: 14px;
+}
+
+header button {
     position: absolute;
-    right: 10px;
-    border: 0px;
-    padding: 6px;
-    margin: 9px;
-    height: auto;
-    border: 1px solid #000;
-    =webkit-border-radius: 3px;
-    border-radius: 3px;
-    color: #999;
-    text-shadow: 1px 1px 1px #000;
-    letter-spacing: 1.1px;
-    cursor: pointer;
+    right: 11px;
 }
 
-.plain_btn.active {
-    background: -moz-linear-gradient(center top , #B8DB29, #5A8F00) repeat scroll 0 0 transparent;
-    background: -webkit-gradient(linear, 0% 40%, 0% 70%, from(#B8DB29), to(#5A8F00));
-    color: white;
-}
-
-footer a:first-child {
+header a:first-child {
     border-left:0px;
 }
 
-.task_tpl #edittask_btn {
+.task_tpl #save_task_btn {
     display:block;
 }
-#edittask_btn {
+#save_task_btn {
     display:none;
 }
 
-#notelist li {
+/* Home Page */
+#tasks_wrapper li {
     border-top: 1px solid #EEE;
     border-bottom: 1px solid #BBB;
 }
-#notelist li.date {
+
+#tasks_wrapper li.date {
     border-top: 0px;
 }
 
-#notelist li.deleted {
+#tasks_wrapper li.deleted {
     color: #666;
     background: #d7d5d2;
     border-top: 1px solid #999;
     border-bottom: 1px solid #AAA;
-}
-
-.deleted .title {
-    text-decoration: line-through;
-}
-
-.task {
-    background: #e9e7e4;
 }
 
 .none {
@@ -266,17 +275,29 @@ footer a:first-child {
     text-shadow: 1px 1px 1px #FFF;
 }
 
-.title {
+.task_link {
     text-decoration: none;
     color: #333;
     white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
     display: block;
-    padding: 5px 0px 5px 0px;
+    padding: 10px 0px 10px 0px;
 }
 
-.delete, .deleteserver {
+.title {
+    position: absolute;
+    right: 90px;
+    left: 36px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.task_tag_wrapper {
+    width: 90px;
+    float: right;
+}
+
+.delete,
+.deleteserver {
     padding: 5px;
     width: 16px;
     height: 16px;
@@ -287,11 +308,8 @@ footer a:first-child {
     opacity: 0.3;
 }
 
-#notelist li.server {
-    padding-left: 10px;
-}
-
-.task, .server {
+.task,
+.server {
     position: relative;
     overflow: hidden;
 }
@@ -320,11 +338,13 @@ footer a:first-child {
     overflow: auto;
 }
 
-#notelist .tag {
-    float: left;
+#tasks_wrapper .tag {
+    float: right;
     display: block;
-    margin-right: 10px;
-    margin-top: 3px;
+    margin-right: 5px;
+    margin-bottom:10px;
+    max-width:35px;
+    overflow:hidden;
 }
 
 .tag {
@@ -338,26 +358,22 @@ footer a:first-child {
     font-family: verdana;
 }
 
-#filterui {
-    display:none;
-}
-
-#hdr .tag {
+#filter_tags .tag {
     margin: 10px 10px 0px 10px;
     opacity: 0.3;
     font-size: 12px;
     padding:5px;
 }
 
-#hdr .tag.active {
+#filter_tags .tag.active {
     opacity: 1;
 }
 
-#hdr {
+#filter_tags {
     overflow: auto;
 }
 
-#hdr h3 {
+#filter_tags h3 {
     float: left;
     margin-top: 10px;
 }
@@ -393,16 +409,11 @@ footer a:first-child {
 }
 
 #edit_task_form .tag {
-    margin-right: 10px;
     opacity: 0.3;
 }
 
 #edit_task_form .tag.active {
     opacity: 1;
-}
-
-.complete_tpl #notelist {
-    border-top: 0px;
 }
 
 .date {
@@ -417,8 +428,19 @@ footer a:first-child {
     background: #EB563E;
 }
 
-#infinite_load, #tasks_end {
+#infinite_load,
+#tasks_end {
     padding: 30px;
     display: none;
     text-align: center;
+}
+
+div.tag_wrapper {
+    line-height: 1em;
+    overflow: auto;
+    padding-bottom: 10px;
+}
+
+div.tag_wrapper .tag {
+    margin:10px 10px 0px 10px;
 }

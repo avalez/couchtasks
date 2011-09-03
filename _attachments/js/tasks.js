@@ -112,7 +112,7 @@ var Tasks = (function () {
     current_tags = $.grep(t.split(','), function(x) { return x !== ''; });
 
     render('home_tpl', '#home_content', {}, function(dom) {
-      $('#hdr', dom).bind('click', function(e) {
+      $('#filter_tags', dom).bind('click', function(e) {
         if ($(e.target).is("a.tag")) {
           addOrRemove(current_tags, $(e.target).data('key'));
         }
@@ -128,7 +128,7 @@ var Tasks = (function () {
 
     var tags = [];
     var doc = docs[details.id];
-    var parsedTags = extractTags(details.notes);
+    var parsedTags = extractTags(details.title);
 
     $('.tag_wrapper').find(".tag.active").each(function() {
       tags.push($(this).attr('data-key'));
@@ -136,7 +136,8 @@ var Tasks = (function () {
 
     doc.estimate = parseInt(details.estimate, 10);
     doc.tags = tags.concat(parsedTags.tags);
-    doc.notes = parsedTags.text;
+    doc.title = parsedTags.text;
+    doc.notes = details.notes;
     doc.check = details.completed && details.completed === 'on';
 
     $db.saveDoc(doc, {
@@ -450,7 +451,7 @@ var Tasks = (function () {
       return;
     }
 
-    var top = $('#notelist li:not(.date)').first();
+    var top = $('#tasks_wrapper li:not(.date)').first();
     var index = parseInt(top.attr('data-index'), 10) + 1 || 1;
 
     $db.saveDoc({
@@ -649,14 +650,13 @@ var Tasks = (function () {
 
   function renderTasksList(tasks, end) {
 
-    tasks.sort(function(a, b) { return a.index < b.index; });
+    tasks.sort(function(a, b) { return b.index - a.index; });
 
     var date = new Date();
     var today = new Date();
     var todolists = {};
     var completedlists = {};
     var hour = 0;
-
 
     $.each(tasks, function(_, obj) {
 
@@ -715,8 +715,8 @@ var Tasks = (function () {
       $('<div>' + Mustache.to_html($('#tags_tpl').html(), {tags: usedTags}) +
         '</div>');
 
-    $('#hdr').empty().append(renderedTags.children());
-    $('#notelist').empty().append(rendered.children());
+    $('#filter_tags').empty().append(renderedTags.children());
+    $('#tasks_wrapper').empty().append(rendered.children());
 
     $("#infinite_load").hide();
     if (end) {
@@ -724,8 +724,8 @@ var Tasks = (function () {
     }
 
     if (!Utils.isMobile()) {
-      $('#notelist ul').sortable({
-        connectWith: $('#notelist ul'),
+      $('#tasks_wrapper ul').sortable({
+        connectWith: $('#tasks_wrapper ul'),
         items: 'li:not(.date)',
         axis:'y',
         distance:30,
@@ -751,15 +751,6 @@ var Tasks = (function () {
     $('.checker', dom).bind('change', markDone);
     $('.delete', dom).bind('click', deleteTask);
 
-    $('#edit_filter', dom).bind('mousedown', function() {
-      $('#filterui', dom).toggle();
-    });
-
-    $('#filterui', dom).bind('mousedown', function(e) {
-      if (e.target.nodeName === 'A') {
-        addOrRemove(params, $(e.target).data('key'));
-      }
-    });
   }
 
   $(window).bind('resize', function () {
@@ -767,7 +758,7 @@ var Tasks = (function () {
   }).trigger('resize');
 
 
-  $('#edittask_btn').bind('click', function (e) {
+  $('#save_task_btn').bind('click', function (e) {
     $('#edit_task_form').trigger('submit');
   });
 
