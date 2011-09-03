@@ -166,20 +166,13 @@ var Tasks = (function () {
 
   function markDone(e) {
 
-    var status = $(this).is(':checked') ? true : false;
+    var status = $(this).is(':checked');
     var li = $(e.target).parents("li");
     var id = li.attr("data-id");
-    var url = '/' + dbName + '/_design/couchtasks/_update/update_status/' + id +
-      '?status=' + status;
 
     myChanges.push(id);
 
-    $.ajax({
-      url: url,
-      type: 'PUT',
-      contentType:'application/json',
-      datatype: 'json'
-    }).then(function() {
+    $db.updateDoc("couchtasks/update_status", id, {status:status}).then(function() {
       if (current_tpl !== 'home_tpl') {
         if (status) {
           li.addClass('deleted');
@@ -215,14 +208,7 @@ var Tasks = (function () {
 
 
   function updateIndex(id, index) {
-    var url = '/' + dbName + '/_design/couchtasks/_update/update_index/' + id +
-      '?index=' + index;
-    $.ajax({
-      url: url,
-      type: 'PUT',
-      contentType: 'application/json',
-      datatype: 'json'
-    });
+    $db.updateDoc("couchtasks/update_index", id, {index:index});
   }
 
 
@@ -383,16 +369,12 @@ var Tasks = (function () {
     createCheckBox(rendered);
     $('.checker', rendered).bind('change', markDone);
 
-    var usedTags = $.map(tags, function(obj) {
-        return {
-          tag: obj.tag,
-          count: obj.count,
-          active: !($.inArray(obj.tag, tagsFromUrl()) === -1)
-        };
+    $.each(tags, function(_, obj) {
+      obj.active = !($.inArray(obj.tag, tagsFromUrl()) === -1);
     });
 
     var renderedTags =
-      $('<div>' + Mustache.to_html($('#tags_tpl').html(), {tags: usedTags}) +
+      $('<div>' + Mustache.to_html($('#tags_tpl').html(), {tags: tags}) +
         '</div>');
 
     $('#filter_tags').empty().append(renderedTags.children());
