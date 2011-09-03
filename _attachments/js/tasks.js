@@ -15,23 +15,18 @@ $.ajaxSetup({
 
 var Tasks = (function () {
 
-  var mainDb  = document.location.pathname.split('/')[1];
+  var mainDb = document.location.pathname.split('/')[1];
   var paneWidth = 0;
-  var router  = Router();
+  var router = Router();
   var current_tpl = null;
-  var slidePane = null;
   var docs = {};
-  var tasks = [];
-  var servers = [];
   var tags = [];
   var currentOffset = 0;
   var lastPane = null;
   var $db = $.couch.db(mainDb);
   var $changes;
-  var viewCache = {};
   var current_tags = [];
   var myChanges = [];
-  var globalTags = [];
   var currentLimit = 20;
 
 
@@ -40,30 +35,6 @@ var Tasks = (function () {
     router.forward('#/tags/');
   }).unload(function() {
     $(window).unbind('scroll', infiniteScroll);
-  });
-
-
-  router.get('#/add_server/', function () {
-    $db.view('couchtasks/servers').then(function (data) {
-      servers = getValues(data.rows);
-      render('addserver_tpl', '#add_server', {servers:servers});
-    });
-  });
-
-
-  router.get('#/complete/', function (_, id) {
-    $db.view('couchtasks/complete', {descending: true}).then(function (data) {
-      tasks = getValues(data.rows);
-      render('complete_tpl', '#complete_content', {notes:tasks}, initTasksList);
-    });
-  });
-
-
-  router.get('#/sync/', function (_, id) {
-    $db.view('couchtasks/servers').then(function (data) {
-      servers = getValues(data.rows);
-      render('sync_tpl', '#sync_content', {servers:servers});
-    });
   });
 
 
@@ -142,21 +113,6 @@ var Tasks = (function () {
 
     $db.saveDoc(doc, {
       success: function () {
-        viewCache = {};
-        router.back();
-      }});
-  });
-
-
-  router.post('#add_server', function (_, e, details) {
-    if (details.server === "") {
-      $('input[name=server]').addClass('formerror');
-      return;
-    }
-    details.type = 'server';
-    $db.saveDoc(details, {
-      success: function () {
-        viewCache = {};
         router.back();
       }});
   });
@@ -165,7 +121,6 @@ var Tasks = (function () {
   router.post('#add_task', function (_, e, details) {
     var doc = extractTags(details.title);
     newTask(doc.text, '', doc.tags, function (data) {
-      viewCache = {};
       $('#add_task_input').val('');
     });
   });
@@ -175,7 +130,6 @@ var Tasks = (function () {
     if  ($(window).scrollTop() == $(document).height() - $(window).height()){
       currentLimit += 20;
       $("#infinite_load").show();
-      viewCache = {};
       updateTaskList();
     }
   };
@@ -216,20 +170,6 @@ var Tasks = (function () {
   }
 
 
-  function view(name, options) {
-    if (typeof viewCache[name] === 'undefined') {
-      var success = options.success;
-      options.success = function (data) {
-        viewCache[name] = data;
-        success(data);
-      };
-      $db.view(name, options);
-    } else {
-      options.success(viewCache[name]);
-    }
-  }
-
-
   function markDone(e) {
 
     var status = $(this).is(':checked') ? true : false;
@@ -246,7 +186,6 @@ var Tasks = (function () {
       contentType:'application/json',
       datatype: 'json',
       success: function() {
-        viewCache = {};
         if (current_tpl !== 'home_tpl') {
           if (status) {
             li.addClass('deleted');
@@ -290,9 +229,7 @@ var Tasks = (function () {
       type: 'PUT',
       contentType: 'application/json',
       datatype: 'json',
-      success: function() {
-        viewCache = {};
-      }
+      success: function() {}
     });
   }
 
@@ -340,58 +277,24 @@ var Tasks = (function () {
 
     var transition = 'slideHorizontal';
 
-    if (transition === 'slideUp') {
-
-      $('#content').one('webkitTransitionEnd transitionend', function() {
-        if (lastPane) {
-          lastPane.hide();
-        }
-        dfd.resolve();
-      });
-
-      slidePane = $pane.addClass('slidepane')
-        .css({left:currentOffset, top:-$(window).height(), 'z-index': 3})
-        .appendTo('#content');
-      transformY(slidePane, $(window).height() + 50);
-
-    } else if (slidePane) {
-
-      if (lastPane) {
-        lastPane.remove();
-        lastPane = null;
-      }
-
-      $pane.css({left: currentOffset}).appendTo($('#content'));
-      transformY(slidePane, 0);
-      lastPane = $pane;
-
-      slidePane.one('webkitTransitionEnd transitionend', function() {
-        slidePane.remove();
-        slidePane = null;
-        dfd.resolve();
-      });
-
-    } else {
-
-      if (current_tpl) {
-        currentOffset += (calcIndex(tpl, current_tpl)) ? paneWidth : -paneWidth;
-      }
-
-      var tmp = lastPane;
-      $('#content').one('webkitTransitionEnd transitionend', function() {
-        if (tmp) {
-          tmp.remove();
-          tmp = null;
-        }
-        dfd.resolve();
-      });
-
-      transformX($pane, currentOffset);
-      $pane.appendTo($('#content'));
-
-      transformX($('#content'), -currentOffset);
-      lastPane = $pane;
+    if (current_tpl) {
+      currentOffset += (calcIndex(tpl, current_tpl)) ? paneWidth : -paneWidth;
     }
+
+    var tmp = lastPane;
+    $('#content').one('webkitTransitionEnd transitionend', function() {
+      if (tmp) {
+        tmp.remove();
+        tmp = null;
+      }
+      dfd.resolve();
+    });
+
+    transformX($pane, currentOffset);
+    $pane.appendTo($('#content'));
+
+    transformX($('#content'), -currentOffset);
+    lastPane = $pane;
     current_tpl = tpl;
 
     return dfd.promise();
@@ -410,37 +313,9 @@ var Tasks = (function () {
   }
 
 
-  function checkCanSaveNote(e) {
-    if ($('input[name=title]').val() === '') {
-      $('#createtask_btn').removeClass('active');
-    } else {
-      $('#createtask_btn').addClass('active');
-    }
-  }
-
-
-  function checkCanSaveServer(e) {
-    if ($('input[name=server]').val() === '') {
-      $('#createserver_btn').removeClass('active');
-    } else {
-      $('#createserver_btn').addClass('active');
-    }
-  }
-
-
   function calcIndex(a, b) {
     var indexii = {home_tpl:1, complete_tpl:2, sync_tpl:3, task_tpl:4};
     return indexii[a] > indexii[b];
-  }
-
-
-  function findTask(id) {
-    for(var i = 0; i < tasks.length; i++) {
-      if (tasks[i].id === id) {
-        return tasks[i];
-      }
-    }
-    return false;
   }
 
 
@@ -464,100 +339,6 @@ var Tasks = (function () {
     }, {
       success: function (data) {
         callback(data);
-      }
-    });
-  }
-
-
-  function doReplication(obj, callbacks) {
-    $.ajax({
-      url: "/_replicate",
-      type: 'POST',
-      data: JSON.stringify(obj),
-      contentType : 'application/json',
-      dataType : 'json',
-      success: callbacks.success,
-      error: callbacks.error
-    });
-  }
-
-
-  function createUrl(username, password, server, database) {
-    if (username === '') {
-      return 'http://' + server + '/' + database;
-    } else {
-      return 'http://' + username + ':' + password + '@' +
-        server + '/' + database;
-    }
-  }
-
-
-  function viewTask(e) {
-    if ($(this).attr("data-noclick")) {
-      $(this).removeAttr("data-noclick");
-      return;
-    }
-    if (!$(e.target).is('li.task') && e.target.nodeName !== 'SPAN') {
-      return;
-    }
-    document.location.href = '#/task/' + $(this).attr('data-id') + '/';
-  }
-
-
-  function doSync(e) {
-
-    var li = $(e.target).parents('li').addClass('syncing');
-    var server = li.attr('data-server');
-    var database = li.attr('data-database');
-    var user = li.attr('data-username');
-    var pass = li.attr('data-password');
-
-    var error = function() {
-      $('#feedback').addClass('error').text('Sync Failed!').show();
-      li.removeClass('syncing');
-    };
-
-    doReplication({
-      create_target: true,
-      filter: 'couchtasks/taskfilter',
-      target: createUrl(user, pass, server, database),
-      source: mainDb
-    }, {
-      success : function() {
-        doReplication({
-          filter: 'couchtasks/taskfilter',
-          target: mainDb,
-          source: createUrl(user, pass, server, database)
-        }, { success : function () {
-          $('#feedback').addClass('success').text('Sync Complete!').show();
-          li.removeClass('syncing');
-        }, error: error})
-      }, error: error});
-  }
-
-
-  function deleteServer(e) {
-    e.preventDefault();
-    var li = $(e.target).parents('li');
-    $db.removeDoc({_id: li.attr('data-id'), _rev: li.attr('data-rev')}, {
-      success: function() {
-        viewCache = {};
-        li.remove();
-      }
-    });
-  }
-
-
-  function deleteTask(e) {
-    e.preventDefault();
-    $(e.target).css({opacity:1});
-    var li = $(e.target).parents('li');
-    $db.removeDoc({_id: li.attr('data-id'), _rev: li.attr('data-rev')}, {
-      success: function() {
-        viewCache = {};
-        li.fadeOut('medium', function () {
-          li.remove();
-        });
       }
     });
   }
@@ -587,10 +368,11 @@ var Tasks = (function () {
     });
   };
 
+
   function updateTaskList() {
     getTags(function() {
       if (!current_tags.length) {
-        view('couchtasks/tasks', {
+        $db.view('couchtasks/tasks', {
           descending: true,
           limit: currentLimit,
           success : function (data) {
@@ -744,13 +526,7 @@ var Tasks = (function () {
 
 
   function initTasksList(dom) {
-
-    var params = $.grep(document.location.hash.replace('#/tags/', '').split(','),
-                        function(x) { return x !== ''; });
-
     $('.checker', dom).bind('change', markDone);
-    $('.delete', dom).bind('click', deleteTask);
-
   }
 
   $(window).bind('resize', function () {
@@ -805,8 +581,6 @@ var Tasks = (function () {
           doRefresh = true;
         }
       }
-
-      viewCache = {};
 
       if (doRefresh && router.matchesCurrent('#/tags/*test')) {
         console.log("Updating");
