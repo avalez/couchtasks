@@ -52,7 +52,6 @@ var Tasks = (function () {
   var current_tpl = null;
   var currentOffset = 0;
   var lastPane = null;
-  var current_tags = [];
   var myChanges = [];
   var currentLimit = 20;
 
@@ -70,25 +69,16 @@ var Tasks = (function () {
 
       $db.openDoc(id).then(function(doc) {
 
-        var t = $.map(tags, function(obj) {
-          return {
-            tag: obj.tag,
-            count: obj.count,
-            active: !($.inArray(obj.tag, doc.tags) === -1)
-          };
+        doc.tags = $.each(tags, function(_, obj) {
+          obj.active = !($.inArray(obj.tag, doc.tags) === -1);
         });
 
-        var est = $.extend(true, [], taskEstimates);
-
-        for (var x in est) {
-          if (est[x].value === (doc.estimate || 60)) {
-            est[x].selected = true;
+        doc.estimates = $.each($.extend(true, [], taskEstimates), function(_, obj) {
+          if (obj.value === (doc.estimate || 60)) {
+            obj.selected = true;
           }
-        }
+        });
 
-        doc.completed = doc.check ? 'checked="checked"' : '';
-        doc.estimates = est;
-        doc.usedTags = t;
         render('task_tpl', null, doc, function(dom) {
           $('.tag_wrapper', dom).bind('click', function(e) {
             if ($(e.target).is("a.tag")) {
@@ -100,20 +90,17 @@ var Tasks = (function () {
     });
   });
 
+
   router.get('#/tags/*test', function (_, t) {
-
-    current_tags = $.grep(t.split(','), function(x) { return x !== ''; });
-
     render('home_tpl', '#home_content', {}, function(dom) {
       $('#filter_tags', dom).bind('click', function(e) {
         if ($(e.target).is("a.tag")) {
-          addOrRemove(current_tags, $(e.target).data('key'));
+          updateFilterUrl($(e.target).data('key'));
         }
       });
     }).then(function() {
       updateTaskList();
     });
-
   });
 
 
@@ -122,7 +109,7 @@ var Tasks = (function () {
     $db.openDoc(details.id).then(function(doc) {
 
       var tags = [];
-      var parsedTags = extractTags(details.title);
+      var parsedTags = extractHashTags(details.title);
 
       $('.tag_wrapper .tag.active').each(function() {
         tags.push($(this).attr('data-key'));
@@ -144,7 +131,7 @@ var Tasks = (function () {
 
   router.post('#add_task', function (_, e, details) {
 
-    var doc = extractTags(details.title);
+    var doc = extractHashTags(details.title);
     var top = $('#tasks_wrapper li:not(.date)').first();
     var index = top.data('index') + 1 || 1;
 
@@ -173,41 +160,6 @@ var Tasks = (function () {
       updateTaskList();
     }
   };
-
-
-  function addOrRemove(arr, key) {
-    if ($.inArray(key, arr) === -1) {
-      arr.push(key);
-    } else {
-      arr = $.grep(arr, function(x) { return x !== key; });
-    }
-    if (arr.length === 0) {
-      document.location.hash = '#/';
-    } else {
-      document.location.hash = '#/tags/' + arr.join(',');
-    }
-  }
-
-
-  function hasTags(doc, tags) {
-    var i = 0;
-    for(var x in tags) {
-      if ($.inArray(tags[x], doc.tags) !== -1) {
-        ++i;
-      }
-    }
-    return i === tags.length;
-  }
-
-
-  function exists(arr, id) {
-    for(var obj in arr) {
-      if (arr[obj]._id === id) {
-        return true;
-      }
-    }
-    return false;
-  }
 
 
   function markDone(e) {
@@ -272,23 +224,6 @@ var Tasks = (function () {
   }
 
 
-  function createIndex(el) {
-
-    var before = el.prev('li.task');
-    var after = el.next('li.task');
-
-    if (before.length === 0 && after.length === 0) {
-      return false;
-    } else if (before.length === 0) {
-      return after.data('index') + 1;
-    } else if (after.length === 0) {
-      return before.data('index') - 1;
-    } else {
-      return (before.data('index') + after.data('index')) / 2;
-    }
-  }
-
-
   function render(tpl, dom, data, init) {
 
     var dfd = $.Deferred();
@@ -329,52 +264,15 @@ var Tasks = (function () {
   }
 
 
-  function transformY(dom, x) {
-    dom.css('-moz-transform', 'translate(0, ' + x + 'px)')
-      .css('-webkit-transform', 'translate(0, ' + x + 'px)');
-  }
-
-
-  function transformX(dom, x) {
-    dom.css('-moz-transform', 'translate(' + x + 'px, 0)')
-      .css('-webkit-transform', 'translate(' + x + 'px, 0)');
-  }
-
-
   function calcIndex(a, b) {
     var indexii = {home_tpl:1, complete_tpl:2, sync_tpl:3, task_tpl:4};
     return indexii[a] > indexii[b];
   }
 
 
-  function extractTags(text) {
-    var tags = $.map(text.match(/\#([\w\-\.]*[\w]+[\w\-\.]*)/g) || [],
-                     function(tag) { return tag.slice(1); });
-
-    return {
-      tags: tags,
-      text: text.replace(/\#([\w\-\.]*[\w]+[\w\-\.]*)/g, '').trim()
-    };
-  }
-
-  function createCheckBox(parent) {
-    $('input[type=checkbox]', parent).each(function() {
-      var $input = $(this).wrap('<div class="checkbox"></div>');
-      var $wrapper = $(this).parent(".checkbox").append('<div />');
-      if ($input.is(':checked')) {
-        $wrapper.addClass('checked');
-      }
-      $wrapper.bind('click', function(){
-        $wrapper.toggleClass('checked');
-        $input.attr('checked', !$input.is(':checked')).change();
-      });
-    });
-  };
-
-
   function updateTaskList() {
     getTags(function(tags) {
-      if (!current_tags.length) {
+      if (!tagsFromUrl().length) {
         $db.view('couchtasks/tasks', {
           descending: true,
           include_docs: true,
@@ -392,12 +290,12 @@ var Tasks = (function () {
         function designDocs(args) {
           return $db.view('couchtasks/tags', args);
         }
-        for (var x in current_tags) {
+        for (var x in tagsFromUrl()) {
           args.push({
             reduce:false,
             include_docs: true,
-            startkey: [current_tags[x]],
-            endkey: [current_tags[x]]
+            startkey: [tagsFromUrl()[x]],
+            endkey: [tagsFromUrl()[x]]
           });
         }
         $.when.apply(this, $.map(args, designDocs)).then(function () {
@@ -406,8 +304,10 @@ var Tasks = (function () {
           }
           $.each(arguments, function(element, i) {
             $.each(i[0].rows, function(y) {
-              if (hasTags(i[0].rows[y].doc, current_tags) &&
-                  !exists(tasks, i[0].rows[y].id)) {
+              var exists = function(doc) { return doc._id === i[0].rows[y].id; };
+
+              if (arraySubset(tagsFromUrl(), i[0].rows[y].doc.tags) &&
+                  !arrayAny(tasks, exists)) {
                 tasks.push(i[0].rows[y].doc);
               }
             });
@@ -416,14 +316,6 @@ var Tasks = (function () {
         });
       }
     });
-  }
-
-
-  function formatDate(date) {
-    var d = date.getDate();
-    var prefix = (d === 1) ? 'st' : (d === 2) ? 'nd' : (d === 3) ? 'rd' : 'th';
-    return days[date.getDay()] + " " + date.getDate() + prefix +
-      " of " + months[date.getMonth()];
   }
 
 
@@ -486,7 +378,7 @@ var Tasks = (function () {
         return {
           tag: obj.tag,
           count: obj.count,
-          active: !($.inArray(obj.tag, current_tags) === -1)
+          active: !($.inArray(obj.tag, tagsFromUrl()) === -1)
         };
     });
 
@@ -521,7 +413,147 @@ var Tasks = (function () {
     }
   }
 
+  /*
+   * Update filter url, adding or removing the key as needed
+   */
+  function updateFilterUrl(key) {
+    var keys = arrayToggle(tagsFromUrl(), key);
+    document.location.hash = '#/tags/' + keys.join(',');
+  }
 
+
+  /*
+   * If a key is in the array, remove it, otherwise add it
+   */
+  function arrayToggle(arr, key) {
+    if ($.inArray(key, arr) === -1) {
+      arr.push(key);
+    } else {
+      arr = $.grep(arr, function(x) { return x !== key; });
+    }
+    return arr;
+  }
+
+
+  /*
+   * Returns a list of tags that are specified in the current url under
+   * the #/tags/ uri
+   */
+  function tagsFromUrl() {
+    var match = router.matchesCurrent('#/tags/*test');
+    return $.grep(match[1].split(','), function(x) { return x !== ''; });
+  }
+
+
+  /*
+   * Return true if any of the items in the array satifies the anyFun predicate
+   */
+  function arrayAny(arr, anyFun) {
+    for(var obj in arr) {
+      if (anyFun(arr[obj])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  /*
+   * Naive implementation to check that arr1 is a full subset of arr2
+   */
+  function arraySubset(arr1, arr2) {
+    var i = 0;
+    $.each(arr1, function(_, val) {
+      if ($.inArray(val, arr2) !== -1) {
+        ++i;
+      }
+    });
+    return i === arr1.length;
+  }
+
+
+  /*
+   * Each task is given a numerical index which defines what order they
+   * should be displayed in, when we reorder something calculate its index
+   * based on the surrounding tasks
+   */
+  function createIndex(el) {
+
+    var before = el.prev('li.task');
+    var after = el.next('li.task');
+
+    if (before.length === 0 && after.length === 0) {
+      return false;
+    } else if (before.length === 0) {
+      return after.data('index') + 1;
+    } else if (after.length === 0) {
+      return before.data('index') - 1;
+    } else {
+      return (before.data('index') + after.data('index')) / 2;
+    }
+  }
+
+
+  /*
+   * Wrapper function for cross browser transforms
+   */
+  function transformX(dom, x) {
+    dom.css('-moz-transform', 'translate(' + x + 'px, 0)')
+      .css('-webkit-transform', 'translate(' + x + 'px, 0)');
+  }
+
+
+  /*
+   * Android makes butt ugly checkboxes, so we just make our own with images
+   * initialises checkboxes for everything inside 'parent', this needs to be
+   * run on anything dynamically put into DOM
+   */
+  function createCheckBox(parent) {
+    $('input[type=checkbox]', parent).each(function() {
+      var $input = $(this).wrap('<div class="checkbox"></div>');
+      var $wrapper = $(this).parent(".checkbox").append('<div />');
+      if ($input.is(':checked')) {
+        $wrapper.addClass('checked');
+      }
+      $wrapper.bind('click', function(){
+        $wrapper.toggleClass('checked');
+        $input.attr('checked', !$input.is(':checked')).change();
+      });
+    });
+  };
+
+
+  /*
+   * Given a string "a random string #with #tags" parse out the hash tags
+   * and return the tags and plain string seperately
+   */
+  function extractHashTags(text) {
+
+    var matches = text.match(/\#([\w\-\.]*[\w]+[\w\-\.]*)/g) || [];
+    var tags = $.map(matches, function(tag) { return tag.slice(1); });
+
+    return {
+      tags: tags,
+      text: text.replace(/\#([\w\-\.]*[\w]+[\w\-\.]*)/g, '').trim()
+    };
+  }
+
+
+  /*
+   * What it says on the tin
+   */
+  function formatDate(date) {
+    var d = date.getDate();
+    var prefix = (d === 1) ? 'st' : (d === 2) ? 'nd' : (d === 3) ? 'rd' : 'th';
+    return days[date.getDay()] + " " + date.getDate() + prefix +
+      " of " + months[date.getMonth()];
+  }
+
+
+  /*
+   * Fetches the current set of tags from a CouchDB view, for every tag we
+   * ensure there is a corresponding style definition for its colour
+   */
   function getTags(callback) {
     $db.view('couchtasks/tags', {group: true}).then(function(data) {
       var x, tag, i = 0, css = [], tags = [];
@@ -536,23 +568,31 @@ var Tasks = (function () {
     });
   };
 
-
-  function startUpdater() {
+  /*
+   * Handles any incoming real time changes from CouchDB, this will either
+   * trigger a full page load if the design doc has changed, or update
+   * the current list of tasks if needed
+   */
+  function handleChanges() {
 
     $changes = $db.changes();
     $changes.onChange(function(changes) {
 
       var doRefresh = false;
 
-      // Full refresh if design doc changes
-      for(var i in changes.results) {
+      $.each(changes.results, function(_, change) {
 
-        if (/^_design/.test(changes.results[i].id)) {
+        // Full refresh if design doc changes
+        if (/^_design/.test(change.id)) {
           document.location.reload();
         }
 
-        doRefresh = doRefresh || $.inArray(changes.results[i].id, myChanges) === -1;
-      }
+        // Otherwise check for changes that we didnt cause
+        if (!doRefresh && $.inArray(change.id, myChanges) === -1) {
+          doRefresh = true;
+        }
+
+      });
 
       if (doRefresh && router.matchesCurrent('#/tags/*test')) {
         updateTaskList();
@@ -562,17 +602,25 @@ var Tasks = (function () {
   }
 
 
+  // the animation stuff needs to know the width of the browser
   $(window).bind('resize', function () {
     paneWidth = $('body').width();
   }).trigger('resize');
 
 
+  // The layout wont let me put the submit button inside the form
+  // proxy the submit button
   $('#save_task_btn').bind('click', function (e) {
     $('#edit_task_form').trigger('submit');
   });
 
 
-  setTimeout(startUpdater, 1000);
+  // Only start handling real time updates after a delay to get round
+  // a silly bug in webkit that shows a page as still loading if ajax
+  // requests are made before the whole page has loaded
+  setTimeout(handleChanges, 1000);
+
+  // Lets start this baby
   router.init(window);
 
 })();

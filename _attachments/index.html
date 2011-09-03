@@ -56,12 +56,12 @@
           </div>
 
           <div class="input tag_wrapper">
-            {{#usedTags}}
+            {{#tags}}
             <a class="tag tag_{{tag}} {{#active}}active{{/active}}"
                data-key="{{tag}}">
               {{tag}}({{count}})
             </a>
-            {{/usedTags}}
+            {{/tags}}
           </div>
 
           <div class="input select">
@@ -76,7 +76,8 @@
           </div>
 
           <div class="input">
-            <input type="checkbox" {{completed}} name="completed" />
+            <input type="checkbox" {{#check}}checked="checked"{{/check}}
+                   name="completed" />
             <label>Completed</label>
           </div>
 
