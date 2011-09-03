@@ -13,17 +13,45 @@ $.ajaxSetup({
 });
 
 
+
+
 var Tasks = (function () {
 
-  var mainDb = document.location.pathname.split('/')[1];
+  // This is the list of predefined tag colours, if there are more tags
+  // than colours then tags turn black
+  var tagColors = [
+    '#288BC2', '#DB2927', '#17B546', '#EB563E', '#AF546A', '#4A4298',
+    '#E7CD17', '#651890', '#E1B931', '#978780', '#CC7E5B', '#7C3F09',
+    '#978780', '#07082F'
+  ];
+
+  var taskEstimates = [
+    {value: 10, text: '10 Minutes'},
+    {value: 30, text: '30 Minutes'},
+    {value: 60, text: '1 Hour'},
+    {value: 120, text: '2 Hours'},
+    {value: 240, text: '4 Hours'}
+  ];
+
+  var days = [
+    'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+  ];
+
+  var months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  var dbName = document.location.pathname.split('/')[1];
+  var $db = $.couch.db(dbName);
+  var $changes;
+
   var paneWidth = 0;
   var router = Router();
   var current_tpl = null;
   var tags = [];
   var currentOffset = 0;
   var lastPane = null;
-  var $db = $.couch.db(mainDb);
-  var $changes;
   var current_tags = [];
   var myChanges = [];
   var currentLimit = 20;
@@ -41,6 +69,7 @@ var Tasks = (function () {
     getTags(function() {
 
       $db.openDoc(id).then(function(doc) {
+
         var t = $.map(tags, function(obj) {
           return {
             tag: obj.tag,
@@ -49,21 +78,16 @@ var Tasks = (function () {
           };
         });
 
-        var estimates = [
-          {value: 10, text:"10 Minutes"},
-          {value: 30, text:"30 Minutes"},
-          {value: 60, text:"1 Hour"},
-          {value: 120, text:"2 Hours"},
-          {value: 240, text:"4 Hours"}
-        ];
-        for (var x in estimates) {
-          if (estimates[x].value === (doc.estimate || 60)) {
-            estimates[x].selected = true;
+        var est = $.extend(true, [], taskEstimates);
+
+        for (var x in est) {
+          if (est[x].value === (doc.estimate || 60)) {
+            est[x].selected = true;
           }
         }
 
         doc.completed = doc.check ? 'checked="checked"' : '';
-        doc.estimates = estimates;
+        doc.estimates = est;
         doc.usedTags = t;
         render('task_tpl', null, doc, function(dom) {
           $('.tag_wrapper', dom).bind('click', function(e) {
@@ -127,7 +151,7 @@ var Tasks = (function () {
 
 
   function infiniteScroll() {
-    if  ($(window).scrollTop() == $(document).height() - $(window).height()){
+    if ($(window).scrollTop() == $(document).height() - $(window).height()){
       currentLimit += 20;
       $("#infinite_load").show();
       updateTaskList();
@@ -175,7 +199,7 @@ var Tasks = (function () {
     var status = $(this).is(':checked') ? true : false;
     var li = $(e.target).parents("li");
     var id = li.attr("data-id");
-    var url = '/' + mainDb + '/_design/couchtasks/_update/update_status/' + id +
+    var url = '/' + dbName + '/_design/couchtasks/_update/update_status/' + id +
       '?status=' + status;
 
     myChanges.push(id);
@@ -184,36 +208,35 @@ var Tasks = (function () {
       url: url,
       type: 'PUT',
       contentType:'application/json',
-      datatype: 'json',
-      success: function() {
-        if (current_tpl !== 'home_tpl') {
-          if (status) {
-            li.addClass('deleted');
-          } else {
-            li.removeClass('deleted');
-          }
+      datatype: 'json'
+    }).then(function() {
+      if (current_tpl !== 'home_tpl') {
+        if (status) {
+          li.addClass('deleted');
         } else {
-          var ul = li.parent("ul");
-          if (status) {
-            li.detach();
+          li.removeClass('deleted');
+        }
+      } else {
+        var ul = li.parent("ul");
+        if (status) {
+          li.detach();
             li.addClass('deleted');
+          li.appendTo(ul);
+        } else {
+          li.detach();
+          li.removeClass('deleted');
+          var index = li.data("index");
+          var obj;
+          ul.children().each(function(_, child) {
+            if ($(child).data("index") < index) {
+              obj = child;
+              return false;
+            }
+          });
+          if (!obj) {
             li.appendTo(ul);
           } else {
-            li.detach();
-            li.removeClass('deleted');
-            var index = parseInt(li.data("index"), 10);
-            var obj;
-            ul.children().each(function(_, child) {
-              if (parseInt($(child).data("index"), 10) < index) {
-                obj = child;
-                return false;
-              }
-            });
-            if (!obj) {
-              li.appendTo(ul);
-            } else {
-              li.insertBefore(obj || ul);
-            }
+            li.insertBefore(obj || ul);
           }
         }
       }
@@ -222,14 +245,13 @@ var Tasks = (function () {
 
 
   function updateIndex(id, index) {
-    var url = '/' + mainDb + '/_design/couchtasks/_update/update_index/' + id +
+    var url = '/' + dbName + '/_design/couchtasks/_update/update_index/' + id +
       '?index=' + index;
     $.ajax({
       url: url,
       type: 'PUT',
       contentType: 'application/json',
-      datatype: 'json',
-      success: function() {}
+      datatype: 'json'
     });
   }
 
@@ -242,12 +264,11 @@ var Tasks = (function () {
     if (before.length === 0 && after.length === 0) {
       return false;
     } else if (before.length === 0) {
-      return parseInt(after.attr('data-index'), 10) + 1;
+      return after.data('index') + 1;
     } else if (after.length === 0) {
-      return parseInt(before.attr('data-index'), 10) - 1;
+      return before.data('index') - 1;
     } else {
-      return (parseInt(before.attr('data-index'), 10) +
-              parseInt(after.attr('data-index'), 10)) / 2;
+      return (before.data('index') + after.data('index')) / 2;
     }
   }
 
@@ -327,7 +348,7 @@ var Tasks = (function () {
     }
 
     var top = $('#tasks_wrapper li:not(.date)').first();
-    var index = parseInt(top.attr('data-index'), 10) + 1 || 1;
+    var index = top.data('index') + 1 || 1;
 
     $db.saveDoc({
       type: 'task',
@@ -336,11 +357,7 @@ var Tasks = (function () {
       title: title,
       tags: tags,
       notes: notes
-    }, {
-      success: function (data) {
-        callback(data);
-      }
-    });
+    }).then(callback);
   }
 
 
@@ -416,11 +433,6 @@ var Tasks = (function () {
 
 
   function formatDate(date) {
-    var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
-                'Friday', 'Saturday'];
-    var months = ['January', 'February', 'March', 'April', 'May', 'June',
-                  'July', 'August', 'September', 'October', 'November',
-                  'December'];
     var day = date.getDate();
     var prefix = (day === 1) ? 'st' :
       (day === 2) ? 'nd' :
@@ -483,7 +495,7 @@ var Tasks = (function () {
     var rendered =
       $('<div>' + Mustache.to_html($('#rows_tpl').html(), obj) + '</div>');
     createCheckBox(rendered);
-    initTasksList(rendered);
+    $('.checker', rendered).bind('change', markDone);
 
     var usedTags = $.map(tags, function(obj) {
         return {
@@ -525,10 +537,6 @@ var Tasks = (function () {
   }
 
 
-  function initTasksList(dom) {
-    $('.checker', dom).bind('change', markDone);
-  }
-
   $(window).bind('resize', function () {
     paneWidth = $('body').width();
   }).trigger('resize');
@@ -540,27 +548,17 @@ var Tasks = (function () {
 
 
   function getTags(callback) {
-    $db.view('couchtasks/tags', {
-      group: true,
-      success: function(data) {
-
-        var colors = ['#288BC2', '#DB2927', '#17B546', '#EB563E', '#AF546A',
-                      '#4A4298', '#E7CD17', '#651890', '#E1B931', '#978780',
-                      '#CC7E5B', '#7C3F09', '#978780', '#07082F'];
-
-        var x, tag, i = 0, css = [];
-
-        tags = [];
-        for (x in data.rows) {
-          tag = data.rows[x].key[0]
-          css.push('.tag_' + tag + ' { background: ' + colors[i++] + ' }');
-          tags.push({tag: tag, count: data.rows[x].value});
-        }
-
-        $("#tag_defs").html(css.join('\n'));
-
-        callback();
+    $db.view('couchtasks/tags', {group: true}).then(function(data) {
+      var x, tag, i = 0, css = [];
+      tags = [];
+      for (x in data.rows) {
+        tag = data.rows[x].key[0]
+        css.push('.tag_' + tag + ' { background: ' + tagColors[i++] + ' }');
+        tags.push({tag: tag, count: data.rows[x].value});
       }
+
+      $("#tag_defs").html(css.join('\n'));
+      callback();
     });
   };
 
@@ -572,18 +570,18 @@ var Tasks = (function () {
     $changes.onChange(function(changes) {
 
       var doRefresh = false;
+
       // Full refresh if design doc changes
       for(var i in changes.results) {
+
         if (/^_design/.test(changes.results[i].id)) {
           document.location.reload();
         }
-        if (!doRefresh && $.inArray(changes.results[i].id, myChanges) === -1) {
-          doRefresh = true;
-        }
+
+        doRefresh = doRefresh || $.inArray(changes.results[i].id, myChanges) === -1;
       }
 
       if (doRefresh && router.matchesCurrent('#/tags/*test')) {
-        console.log("Updating");
         updateTaskList();
       }
 
