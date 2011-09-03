@@ -289,15 +289,6 @@ var Tasks = (function () {
   }
 
 
-  function getValues(src) {
-    var arr = [], i;
-    for (i = 0; i < src.length; i++) {
-      arr.push(src[i].value);
-    }
-    return arr;
-  }
-
-
   function render(tpl, dom, data, init) {
 
     var dfd = $.Deferred();
@@ -386,12 +377,13 @@ var Tasks = (function () {
       if (!current_tags.length) {
         $db.view('couchtasks/tasks', {
           descending: true,
+          include_docs: true,
           limit: currentLimit,
           success : function (data) {
             if (data.total_rows < currentLimit) {
               $(window).unbind('scroll', infiniteScroll);
             }
-            tasks = getValues(data.rows);
+            tasks = $.map(data.rows, function(obj) { return obj.doc; });
             renderTasksList(tasks, tags, data.total_rows < currentLimit);
           }
         });
