@@ -1,6 +1,6 @@
-/*jshint */
 
-window.log = function(){
+
+window.log = function() {
   log.history = log.history || [];
   log.history.push(arguments);
   if(this.console){
@@ -8,11 +8,10 @@ window.log = function(){
   }
 };
 
+
 $.ajaxSetup({
   cache: false
 });
-
-
 
 
 var Tasks = (function () {
@@ -49,10 +48,11 @@ var Tasks = (function () {
   var router = Router();
 
   var paneWidth = 0;
-  var current_tpl = null;
   var currentOffset = 0;
   var lastPane = null;
+
   var myChanges = [];
+  var current_tpl = null;
   var currentLimit = 20;
 
 
@@ -65,29 +65,31 @@ var Tasks = (function () {
 
 
   router.get('#/task/:id/', function (_, id) {
-    getTags(function(tags) {
 
-      $db.openDoc(id).then(function(doc) {
+    $.when(getTags(), $db.openDoc(id)).then(function(tags, doc) {
 
-        doc.tags = $.each(tags, function(_, obj) {
-          obj.active = !($.inArray(obj.tag, doc.tags) === -1);
-        });
+      doc = doc[0];
+      doc.estimate = doc.estimate || 0;
 
-        doc.estimates = $.each($.extend(true, [], taskEstimates), function(_, obj) {
-          if (obj.value === (doc.estimate || 60)) {
-            obj.selected = true;
+      doc.tags = $.each(tags, function(_, obj) {
+        obj.active = !($.inArray(obj.tag, doc.tags) === -1);
+      });
+
+      doc.estimates = $.each($.extend(true, [], taskEstimates), function(_, obj) {
+        if (obj.value === doc.estimate) {
+          obj.selected = true;
+        }
+      });
+
+      render('task_tpl', null, doc, function(dom) {
+        $('.tag_wrapper', dom).bind('click', function(e) {
+          if ($(e.target).is("a.tag")) {
+            $(e.target).toggleClass('active');
           }
-        });
-
-        render('task_tpl', null, doc, function(dom) {
-          $('.tag_wrapper', dom).bind('click', function(e) {
-            if ($(e.target).is("a.tag")) {
-              $(e.target).toggleClass('active');
-            }
-          });
         });
       });
     });
+
   });
 
 
@@ -271,7 +273,8 @@ var Tasks = (function () {
 
 
   function updateTaskList() {
-    getTags(function(tags) {
+    getTags().then(function(tags) {
+
       if (!tagsFromUrl().length) {
         $db.view('couchtasks/tasks', {
           descending: true,
@@ -285,27 +288,34 @@ var Tasks = (function () {
             renderTasksList(tasks, tags, data.total_rows < currentLimit);
           }
         });
+
       } else {
-        var args = [], tasks = [];
-        function designDocs(args) {
+
+        var designDocs = function(args) {
           return $db.view('couchtasks/tags', args);
         }
-        for (var x in tagsFromUrl()) {
-          args.push({
+
+        var args = $.map(tagsFromUrl(), function(tag) {
+          return {
             reduce:false,
             include_docs: true,
-            startkey: [tagsFromUrl()[x]],
-            endkey: [tagsFromUrl()[x]]
-          });
-        }
+            startkey: [tag],
+            endkey: [tag]
+          };
+        });
+
         $.when.apply(this, $.map(args, designDocs)).then(function () {
+
+          // Stupid jquery deferred bug
           if (args.length === 1) {
             arguments = [arguments];
           }
+
+          var tasks = [];
+
           $.each(arguments, function(element, i) {
             $.each(i[0].rows, function(y) {
               var exists = function(doc) { return doc._id === i[0].rows[y].id; };
-
               if (arraySubset(tagsFromUrl(), i[0].rows[y].doc.tags) &&
                   !arrayAny(tasks, exists)) {
                 tasks.push(i[0].rows[y].doc);
@@ -367,7 +377,6 @@ var Tasks = (function () {
     for (var x in completedlists) {
       obj.tasklist.push(completedlists[x]);
     }
-
 
     var rendered =
       $('<div>' + Mustache.to_html($('#rows_tpl').html(), obj) + '</div>');
@@ -554,7 +563,10 @@ var Tasks = (function () {
    * Fetches the current set of tags from a CouchDB view, for every tag we
    * ensure there is a corresponding style definition for its colour
    */
-  function getTags(callback) {
+  function getTags() {
+
+    var dfd = $.Deferred();
+
     $db.view('couchtasks/tags', {group: true}).then(function(data) {
       var x, tag, i = 0, css = [], tags = [];
       for (x in data.rows) {
@@ -564,8 +576,13 @@ var Tasks = (function () {
       }
 
       $("#tag_defs").html(css.join('\n'));
-      callback(tags);
+      //callback(tags);
+
+      dfd.resolve(tags);
+
     });
+
+    return dfd.promise();
   };
 
   /*
@@ -590,6 +607,7 @@ var Tasks = (function () {
         // Otherwise check for changes that we didnt cause
         if (!doRefresh && $.inArray(change.id, myChanges) === -1) {
           doRefresh = true;
+          myChanges = [];
         }
 
       });
