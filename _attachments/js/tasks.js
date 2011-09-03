@@ -108,12 +108,12 @@ var Tasks = (function () {
 
   router.post('#edit', function (_, e, details) {
 
-    $db.openDoc(details.id).then(function(doc) {
+    $db.openDoc(details.id).then(function (doc) {
 
       var tags = [];
       var parsedTags = extractHashTags(details.title);
 
-      $('.tag_wrapper .tag.active').each(function() {
+      $('.tag_wrapper .tag.active').each(function () {
         tags.push($(this).attr('data-key'));
       });
 
@@ -146,8 +146,7 @@ var Tasks = (function () {
       index: index,
       check: false,
       title: doc.text,
-      tags: doc.tags,
-      notes: ''
+      tags: doc.tags
     }).then(function (data) {
       $('#add_task_input').val('');
     });
@@ -215,6 +214,7 @@ var Tasks = (function () {
   function render(tpl, dom, data, init) {
 
     var dfd = $.Deferred();
+
     data = data || {};
     $('body').removeClass(current_tpl).addClass(tpl);
 
@@ -259,20 +259,21 @@ var Tasks = (function () {
 
 
   function updateTaskList() {
-    getTags().then(function(tags) {
+
+    getTags().then(function (tags) {
 
       if (!tagsFromUrl().length) {
+
         $db.view('couchtasks/tasks', {
           descending: true,
           include_docs: true,
-          limit: currentLimit,
-          success : function (data) {
-            if (data.total_rows < currentLimit) {
-              $(window).unbind('scroll', infiniteScroll);
-            }
-            tasks = $.map(data.rows, function(obj) { return obj.doc; });
-            renderTasksList(tasks, tags, data.total_rows < currentLimit);
+          limit: currentLimit
+        }).then(function (data) {
+          if (data.total_rows < currentLimit) {
+            $(window).unbind('scroll', infiniteScroll);
           }
+          tasks = $.map(data.rows, function(obj) { return obj.doc; });
+          renderTasksList(tasks, tags, data.total_rows < currentLimit);
         });
 
       } else {
@@ -550,22 +551,19 @@ var Tasks = (function () {
     var dfd = $.Deferred();
 
     $db.view('couchtasks/tags', {group: true}).then(function(data) {
-      var x, tag, i = 0, css = [], tags = [];
-      for (x in data.rows) {
-        tag = data.rows[x].key[0]
-        css.push('.tag_' + tag + ' { background: ' + tagColors[i++] + ' }');
-        tags.push({tag: tag, count: data.rows[x].value});
-      }
+      var i = 0, css = [], tags = [];
+      $.each(data.rows, function(_, tag) {
+        css.push('.tag_' + tag.key[0] + ' { background: ' + tagColors[i++] + ' }');
+        tags.push({tag: tag.key[0], count: tag.value});
+      });
 
       $("#tag_defs").html(css.join('\n'));
-      //callback(tags);
-
       dfd.resolve(tags);
-
     });
 
     return dfd.promise();
   };
+
 
   /*
    * Handles any incoming real time changes from CouchDB, this will either
