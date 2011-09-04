@@ -101,10 +101,8 @@ var Tasks = (function () {
       });
 
       render('task_tpl', null, doc, function(dom) {
-        $('.tag_wrapper', dom).bind('click', function(e) {
-          if ($(e.target).is("a.tag")) {
-            $(e.target).toggleClass('active');
-          }
+        $('a.tag', dom[0]).live('click', function(e) {
+          $(e.target).toggleClass('active');
         });
       });
     });
@@ -113,18 +111,15 @@ var Tasks = (function () {
 
 
   router.get('#/tags/*test', function (_, t) {
-    var opts = {showFilters: localJSON.get('showFilters', false)};
+    var opts = {
+      showFilters: localJSON.get('showFilters', false)
+    };
     render('home_tpl', '#home_content', opts, function(dom) {
-      $('#filter_tags', dom).bind('click', function(e) {
-        if ($(e.target).is("a.tag")) {
-          updateFilterUrl($(e.target).data('key'));
-        }
+      $('a.tag', dom[0]).live('click', function(e) {
+        updateFilterUrl($(e.target).data('key'));
       });
-    }).then(function() {
-      updateTaskList();
-    });
+    }).then(updateTaskList);
   });
-
 
   router.post('#edit', function (_, e, details) {
 
