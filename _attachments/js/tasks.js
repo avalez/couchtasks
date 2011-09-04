@@ -410,7 +410,7 @@ var Tasks = (function () {
    */
   function updateFilterUrl(key) {
     var keys = arrayToggle(tagsFromUrl(), key);
-    document.location.hash = '#/tags/' + keys.join(',');
+    document.location.hash = '#/' + ((keys.length) ? 'tags/' + keys.join(',') : '');
   }
 
 
