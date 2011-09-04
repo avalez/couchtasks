@@ -647,7 +647,7 @@ var Tasks = (function () {
   // Only start handling real time updates after a delay to get round
   // a silly bug in webkit that shows a page as still loading if ajax
   // requests are made before the whole page has loaded
-  setTimeout(handleChanges, 1000);
+  setTimeout(handleChanges, 5000);
 
   // Lets start this baby
   router.init(window);
