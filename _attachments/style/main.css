@@ -372,6 +372,7 @@ header a:first-child {
 }
 
 #filter_tags {
+    min-height: 36px;
     overflow: auto;
 }
 
