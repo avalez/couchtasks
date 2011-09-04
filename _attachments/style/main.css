@@ -141,6 +141,8 @@ input[type=checkbox] {
     position: relative;
     -webkit-transition: -webkit-transform 0.5s ease-in-out;
     -moz-transition: -moz-transform 0.5s ease-in-out;
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective:1000;
 }
 
 .pane {
@@ -426,6 +428,7 @@ div.tag_wrapper .tag {
     border: 1px solid;
     border-color: #222 #222 #333 #222;
     box-shadow:0px 1px 1px #777;
+    -webkit-box-shadow:0px 1px 1px #777;
     color: #EEE;
     letter-spacing: 1px;
     text-shadow: 1px 1px 2px #343A40;
@@ -450,6 +453,7 @@ div.tag_wrapper .tag {
     border: 1px solid;
     border-color: #222 #222 #333 #222;
     box-shadow:0px 1px 1px #777;
+    -webkit-box-shadow:0px 1px 1px #777;
 }
 
 #edit_task_form textarea {

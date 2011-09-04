@@ -505,8 +505,13 @@ var Tasks = (function () {
    * Wrapper function for cross browser transforms
    */
   function transformX(dom, x) {
-    dom.css('-moz-transform', 'translate(' + x + 'px, 0)')
-      .css('-webkit-transform', 'translate(' + x + 'px, 0)');
+    if (Modernizr.csstransforms3d) {
+      dom.css("-moz-transform", "translate3d(" + x + "px, 0, 0)")
+        .css("-webkit-transform", "translate3d(" + x + "px, 0, 0)");
+    } else {
+      dom.css("-moz-transform", "translate(" + x + "px, 0)")
+        .css("-webkit-transform", "translate(" + x + "px, 0)");
+    }
   }
 
 
