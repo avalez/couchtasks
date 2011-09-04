@@ -9,9 +9,9 @@ h3 {
 }
 
 body {
-    background: #e9e7e4;
     overflow-x:hidden;
     overflow-y:scroll;
+    background: none repeat scroll 0 0 #556270;
 }
 
 body,
@@ -178,7 +178,6 @@ input[type=checkbox] {
 }
 
 .pane {
-    background: #e9e7e4;
     position: absolute;
     width: 100%;
 }
@@ -195,13 +194,14 @@ input[type=checkbox] {
 header {
     z-index: 4;
     display: block;
-    margin: 10px 10px 0px 10px;
+    margin: 0px 10px 0px 10px;
     height: 49px;
     background: #222;
-    background: -moz-linear-gradient(center top , #444, #222) repeat scroll 0 0 transparent;
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#444), color-stop(100%,#222));
-    border-radius: 10px;
+    background: -moz-linear-gradient(center top , #333, #222) repeat scroll 0 0 transparent;
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#333), color-stop(100%,#222));
+    border-radius: 0px 0px 5px 5px;
     border: 1px solid #000;
+    border-top:0px;
 }
 
 header a {
@@ -252,19 +252,15 @@ header a:first-child {
 
 /* Home Page */
 #tasks_wrapper li {
-    border-top: 1px solid #EEE;
-    border-bottom: 1px solid #BBB;
+    border-bottom: 1px solid #333;
 }
 
-#tasks_wrapper li.date {
-    border-top: 0px;
+#tasks_wrapper li:last-child {
+    border-bottom: 0px;
 }
 
 #tasks_wrapper li.deleted {
     color: #666;
-    background: #d7d5d2;
-    border-top: 1px solid #999;
-    border-bottom: 1px solid #AAA;
 }
 
 .none {
@@ -277,11 +273,12 @@ header a:first-child {
 
 .task_link {
     text-decoration: none;
-    color: #333;
+    color: #EEE;
     white-space: nowrap;
     display: block;
     padding: 10px 0px 10px 0px;
     overflow: auto;
+    text-shadow: 1px 1px 2px #343A40;
 }
 
 .title {
@@ -314,6 +311,7 @@ header a:first-child {
 .server {
     position: relative;
     overflow: hidden;
+    background: rgba(0, 0, 0, 0.1);
 }
 
 #edit_filter {
@@ -419,16 +417,21 @@ header a:first-child {
     opacity: 1;
 }
 
-.date {
-    background: #407AA5;
-    color: white;
+#tasks_wrapper .date {
+    background:#333;
+    color: #CCC;
     text-align: center;
     font-size: 14px;
     padding: 7px 0px 5px 0px;
+    text-shadow: 1px 1px 2px #343A40;
+    border:1px solid #000;
+    border-width:1px 0px 0px 0px;
+    border-bottom:0px;
 }
 
-.date.completed {
-    background: #EB563E;
+#tasks_wrapper .date.completed {
+    background: #BC7B00;
+    color: #EEE;
 }
 
 #infinite_load,
@@ -446,4 +449,23 @@ div.tag_wrapper {
 
 div.tag_wrapper .tag {
     margin:10px 10px 0px 10px;
+}
+
+#add_task_input {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius:5px;
+    border: 1px solid;
+    border-color: #444 #444 #555 #444;
+    box-shadow:0px 1px 1px #777;
+    color: #EEE;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 2px #343A40;
+}
+
+#add_task_input::-webkit-input-placeholder {
+    color: #999;
+}
+
+#add_task_input:-moz-placeholder {
+    color: #999;
 }
