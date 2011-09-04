@@ -405,13 +405,6 @@ header a:first-child {
     color: #EEE;
 }
 
-#infinite_load,
-#tasks_end {
-    padding: 30px;
-    display: none;
-    text-align: center;
-}
-
 div.tag_wrapper {
     line-height: 1em;
     overflow: auto;
@@ -458,4 +451,14 @@ div.tag_wrapper .tag {
 
 #edit_task_form textarea {
     margin:10px 0px;
+}
+
+#load_more_btn {
+    display: block;
+    margin: 0px;
+    width: 100%;
+}
+
+#load_btn_wrapper {
+    padding: 10px;
 }
