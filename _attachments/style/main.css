@@ -11,7 +11,7 @@ h3 {
 body {
     overflow-x:hidden;
     overflow-y:scroll;
-    background: none repeat scroll 0 0 #556270;
+    background: none repeat scroll 0 0 #515151;
 }
 
 body,
@@ -55,7 +55,7 @@ textarea {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-    resize: none;
+    ressize: none;
     outline: none;
 }
 
@@ -243,6 +243,14 @@ header a:first-child {
     border-left:0px;
 }
 
+.home_tpl #show_filters_btn {
+    display:block;
+}
+
+#show_filters_btn {
+    display:none;
+}
+
 .task_tpl #save_task_btn {
     display:block;
 }
@@ -252,15 +260,15 @@ header a:first-child {
 
 /* Home Page */
 #tasks_wrapper li {
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid #444;
 }
 
 #tasks_wrapper li:last-child {
     border-bottom: 0px;
 }
 
-#tasks_wrapper li.deleted {
-    color: #666;
+#tasks_wrapper li.deleted .task_link {
+    color: #888;
 }
 
 .none {
@@ -468,4 +476,8 @@ div.tag_wrapper .tag {
 
 #add_task_input:-moz-placeholder {
     color: #999;
+}
+
+#filter_tags {
+    display: none;
 }

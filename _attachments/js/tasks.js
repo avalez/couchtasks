@@ -613,6 +613,11 @@ var Tasks = (function () {
   });
 
 
+  $('#show_filters_btn').bind('click', function (e) {
+    $('#filter_tags').toggle();
+  });
+
+
   // Only start handling real time updates after a delay to get round
   // a silly bug in webkit that shows a page as still loading if ajax
   // requests are made before the whole page has loaded
