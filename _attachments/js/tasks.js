@@ -88,7 +88,7 @@ var Tasks = (function () {
     $.when(getTags(), $db.openDoc(id)).then(function(tags, doc) {
 
       doc = doc[0];
-      doc.estimate = doc.estimate || 0;
+      doc.estimate = doc.estimate || 60;
 
       doc.tags = $.each(tags, function(_, obj) {
         obj.active = !($.inArray(obj.tag, doc.tags) === -1);
@@ -648,9 +648,8 @@ var Tasks = (function () {
   router.init(window);
 
   $('body').noisy({
-    intensity: 0.9,
+    intensity: 1,
     size: 200,
-    opacity: 0.08,
     monochrome: false
   });
 

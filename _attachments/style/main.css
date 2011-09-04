@@ -20,6 +20,10 @@ select,
 input,
 textarea {
     font: 1em Helvetica, arial, sans-serif;
+    color: #EEE;
+}
+
+select {
     color: #222;
 }
 
@@ -62,7 +66,6 @@ textarea {
 button {
     background: -moz-linear-gradient(center top , #555, #333);
     background: -webkit-gradient(linear, 0% 40%, 0% 70%, from(#555), to(#333));
-
     opacity: 1;
     font-size: 14px;
     border: 0px;
@@ -85,41 +88,12 @@ button.active {
 }
 
 textarea {
-    padding: 0px;
     height: 140px;
 }
 
-fieldset {
-    border-radius: 10px;
-    border: 1px solid #AAA;
-    -moz-box-shadow: 0px 1px 2px #666;
-    -webkit-box-shadow: 0px 1px 2px #666;
-    box-shadow: 0px 1px 2px #666;
-    background: white;
-    overflow: hidden;
-    margin-bottom: 0px;
-}
-
-fieldset input:first-child {
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    border-top: 0px !important;
-}
-
-fieldset .textarea:first-child {
-    border-top: 0px !important;
-}
-
-fieldset input:last-child {
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
-}
-
-div.input,
-fieldset input[type=password],
-fieldset input[type=text],
-fieldset .textarea {
-    border-top: 1px solid #CCC;
+div.input {
+    line-height: 37px;
+    border-top: 1px solid #444;
 }
 
 ::-webkit-input-placeholder {
@@ -128,14 +102,6 @@ fieldset .textarea {
 
 :-moz-placeholder {
     color: #BBB;
-}
-
-div.input {
-    line-height: 37px;
-}
-
-.textarea {
-    padding: 10px;
 }
 
 .select {
@@ -173,18 +139,13 @@ input[type=checkbox] {
 /* Main Layout */
 #content {
     position: relative;
-    -webkit-transition: all 0.5s ease-in-out;
-    -moz-transition: all 0.5s ease-in-out;
+    -webkit-transition: -webkit-transform 0.5s ease-in-out;
+    -moz-transition: -moz-transform 0.5s ease-in-out;
 }
 
 .pane {
     position: absolute;
     width: 100%;
-}
-
-.slidepane {
-    -webkit-transition: all 0.5s ease-in-out;
-    -moz-transition: all 0.5s ease-in-out;
 }
 
 .content > h3 {
@@ -460,10 +421,10 @@ div.tag_wrapper .tag {
 }
 
 #add_task_input {
-    background-color: rgba(0, 0, 0, 0.1);
     border-radius:5px;
+    background-color: rgba(0, 0, 0, 0.3);
     border: 1px solid;
-    border-color: #444 #444 #555 #444;
+    border-color: #222 #222 #333 #222;
     box-shadow:0px 1px 1px #777;
     color: #EEE;
     letter-spacing: 1px;
@@ -471,13 +432,26 @@ div.tag_wrapper .tag {
 }
 
 #add_task_input::-webkit-input-placeholder {
-    color: #999;
+    color: #666;
 }
 
-#add_task_input:-moz-placeholder {
-    color: #999;
+#edit_task_form textarea:-moz-placeholder, #add_task_input:-moz-placeholder {
+    color: #666;
 }
 
 #filter_tags {
     display: none;
+}
+
+#edit_task_form input, #edit_task_form textarea {
+    border-radius: 5px;
+    color: #eee;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid;
+    border-color: #222 #222 #333 #222;
+    box-shadow:0px 1px 1px #777;
+}
+
+#edit_task_form textarea {
+    margin:10px 0px;
 }
