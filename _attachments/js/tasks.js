@@ -273,7 +273,7 @@ var Tasks = (function () {
           limit: currentLimit
         }).then(function (data) {
           tasks = $.map(data.rows, function(obj) { return obj.doc; });
-          renderTasksList(tasks, tags, data.total_rows < currentLimit);
+          renderTasksList(tasks, tags, true, data.total_rows < currentLimit);
         });
 
       } else {
@@ -309,14 +309,14 @@ var Tasks = (function () {
               }
             });
           });
-          renderTasksList(tasks, tags);
+          renderTasksList(tasks, tags, false);
         });
       }
     });
   }
 
 
-  function renderTasksList(tasks, tags, end) {
+  function renderTasksList(tasks, tags, paginate, end) {
 
     tasks.sort(function(a, b) { return b.index - a.index; });
 
@@ -381,21 +381,23 @@ var Tasks = (function () {
     $('#filter_tags').empty().append(renderedTags.children());
     $('#tasks_wrapper').empty().append(rendered.children());
 
-    var wrapper = $('<div id="load_btn_wrapper" />');
-    var btn = $('<button id="load_more_btn"></button>');
+    if (paginate) {
+      var wrapper = $('<div id="load_btn_wrapper" />');
+      var btn = $('<button id="load_more_btn"></button>');
 
-    if (end) {
-      btn.text("No More Tasks");
-    } else {
-      btn.addClass('active').text("Load More Tasks").bind('mousedown', function() {
-        currentLimit += 20;
-        updateTaskList();
-        btn.text("Loading");
-      });
+      if (end) {
+        btn.text("No More Tasks");
+      } else {
+        btn.addClass('active').text("Load More Tasks").bind('mousedown', function() {
+          currentLimit += 20;
+          updateTaskList();
+          btn.text("Loading");
+        });
+      }
+
+      btn.appendTo(wrapper);
+      wrapper.appendTo($('#tasks_wrapper'));
     }
-
-    btn.appendTo(wrapper);
-    wrapper.appendTo($('#tasks_wrapper'));
 
     if (!Utils.isMobile()) {
       $('#tasks_wrapper ul').sortable({
