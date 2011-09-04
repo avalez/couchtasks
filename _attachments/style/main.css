@@ -157,12 +157,11 @@ input[type=checkbox] {
 header {
     z-index: 4;
     display: block;
-    margin: 0px 10px 0px 10px;
+    margin: 0px;
     height: 49px;
     background: #222;
     background: -moz-linear-gradient(center top , #333, #222) repeat scroll 0 0 transparent;
     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#333), color-stop(100%,#222));
-    border-radius: 0px 0px 5px 5px;
     border: 1px solid #000;
     border-top:0px;
 }
