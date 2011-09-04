@@ -27,7 +27,8 @@
 
     <script type="text/html" id="home_tpl">
 
-      <div id="filter_tags"></div>
+      <div id="filter_tags" {{#showFilters}}style="display:block;"{{/showFilters}}>
+      </div>
 
       <form action="#add_task">
         <input type="text" name="title" id="add_task_input"

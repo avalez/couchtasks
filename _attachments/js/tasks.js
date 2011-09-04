@@ -14,6 +14,25 @@ $.ajaxSetup({
 });
 
 
+// Basic wrapper for localStorage
+var localJSON = (function(){
+  if (!localStorage) {
+    return false;
+  }
+  return {
+    set: function(prop, val) {
+      localStorage.setItem(prop, JSON.stringify(val));
+    },
+    get: function(prop, def) {
+      return JSON.parse(localStorage.getItem(prop) || 'false') || def;
+    },
+    remove: function(prop) {
+      localStorage.removeItem(prop);
+    }
+  };
+})();
+
+
 var Tasks = (function () {
 
   // This is the list of predefined tag colours, if there are more tags
@@ -94,7 +113,8 @@ var Tasks = (function () {
 
 
   router.get('#/tags/*test', function (_, t) {
-    render('home_tpl', '#home_content', {}, function(dom) {
+    var opts = {showFilters: localJSON.get('showFilters', false)};
+    render('home_tpl', '#home_content', opts, function(dom) {
       $('#filter_tags', dom).bind('click', function(e) {
         if ($(e.target).is("a.tag")) {
           updateFilterUrl($(e.target).data('key'));
@@ -614,7 +634,13 @@ var Tasks = (function () {
 
 
   $('#show_filters_btn').bind('click', function (e) {
-    $('#filter_tags').toggle();
+
+    var $filter_ui = $('#filter_tags');
+    var visible = !$filter_ui.is(":visible");
+
+    localJSON.set('showFilters', visible);
+    $filter_ui[visible ? 'show' : 'hide']();
+
   });
 
 
