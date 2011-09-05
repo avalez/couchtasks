@@ -92,7 +92,7 @@ textarea {
 }
 
 div.input {
-    line-height: 37px;
+    line-height: 44px;
     border-top: 1px solid #444;
 }
 
@@ -102,10 +102,6 @@ div.input {
 
 :-moz-placeholder {
     color: #BBB;
-}
-
-.select {
-    padding: 0 10px;
 }
 
 /* Custom Checkboxes */
@@ -460,4 +456,15 @@ div.tag_wrapper .tag {
 
 #load_btn_wrapper {
     padding: 10px;
+}
+
+#estimate {
+    float: right;
+    margin-top: 11px;
+}
+#edit_task_form .checkbox {
+    float: right;
+}
+#edit_task_form label {
+    text-shadow: 1px 1px 2px #000;
 }

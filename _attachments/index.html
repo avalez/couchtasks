@@ -61,7 +61,8 @@
           </div>
 
           <div class="input select">
-            <select name="estimate">
+            <label for="estimate">Estimate</li>
+            <select name="estimate" id="estimate">
               {{#estimates}}
               <option value="{{value}}"
                       {{#selected}}selected{{/selected}}>
@@ -72,9 +73,9 @@
           </div>
 
           <div class="input">
+            <label for="completed">Completed</li>
             <input type="checkbox" {{#check}}checked="checked"{{/check}}
-                   name="completed" />
-            <label>Completed</label>
+                   name="completed" id="completed" />
           </div>
 
       </form>
