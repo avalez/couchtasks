@@ -468,3 +468,17 @@ div.tag_wrapper .tag {
 #edit_task_form label {
     text-shadow: 1px 1px 2px #000;
 }
+
+.btn_wrapper {
+    padding: 0px 10px;
+}
+
+.btn_wrapper button {
+    width:100%;
+    margin: 0px;
+}
+
+button.warning {
+    background: -moz-linear-gradient(center top , #9D4846, #9D0300) repeat scroll 0 0 transparent;
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#B8DB29), color-stop(100%,#5A8F00));
+}

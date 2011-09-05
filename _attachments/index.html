@@ -61,7 +61,7 @@
           </div>
 
           <div class="input select">
-            <label for="estimate">Estimate</li>
+            <label for="estimate">Estimate</label>
             <select name="estimate" id="estimate">
               {{#estimates}}
               <option value="{{value}}"
@@ -73,12 +73,20 @@
           </div>
 
           <div class="input">
-            <label for="completed">Completed</li>
+            <label for="completed">Completed</label>
             <input type="checkbox" {{#check}}checked="checked"{{/check}}
                    name="completed" id="completed" />
           </div>
 
       </form>
+
+      <div class="btn_wrapper">
+        <form action="#delete_task">
+          <input type="hidden" name="id" value="{{_id}}" />
+          <input type="hidden" name="rev" value="{{_rev}}" />
+          <button class="active warning">Delete Task</button>
+        </form>
+      </div>
 
     </script>
 

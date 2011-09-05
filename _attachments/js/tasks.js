@@ -166,6 +166,13 @@ var Tasks = (function () {
   });
 
 
+  router.post('#delete_task', function (_, e, details) {
+    $db.removeDoc({_id: details.id, _rev: details.rev}).then(function() {
+      router.back();
+    });
+  });
+
+
   function markDone(e) {
 
     var status = $(this).is(':checked');
