@@ -359,7 +359,7 @@ var Tasks = (function () {
       }
       if (hour >= (8 * 60)) {
         hour = 0;
-        date.setDate(date.getDate() - 1);
+        date.setDate(date.getDate() + 1);
       }
     });
 
