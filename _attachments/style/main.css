@@ -395,11 +395,6 @@ header a:first-child {
     border-bottom:0px;
 }
 
-#tasks_wrapper .date.completed {
-    background: #BC7B00;
-    color: #EEE;
-}
-
 div.tag_wrapper {
     line-height: 1em;
     overflow: auto;
