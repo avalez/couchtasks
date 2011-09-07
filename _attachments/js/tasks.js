@@ -72,7 +72,6 @@ var Tasks = (function () {
 
   var myChanges = [];
   var current_tpl = null;
-  var currentLimit = 20;
 
 
   router.get('#/?', function (_, t) {
@@ -223,9 +222,10 @@ var Tasks = (function () {
 
   function render(tpl, dom, data, init) {
 
+    data = data || {};
+
     var dfd = $.Deferred();
 
-    data = data || {};
     $('body').removeClass(current_tpl).addClass(tpl);
 
     var rendered = Mustache.to_html($("#" + tpl).html(), data),
@@ -235,8 +235,6 @@ var Tasks = (function () {
     if (init) {
       init($pane);
     }
-
-    var transition = 'slideHorizontal';
 
     if (current_tpl) {
       currentOffset += (calcIndex(tpl, current_tpl)) ? paneWidth : -paneWidth;
@@ -268,64 +266,91 @@ var Tasks = (function () {
   }
 
 
+  function fetchAllTasks(start, limit) {
+    var dfd = $.Deferred();
+    $db.view('couchtasks/tasks', {
+      descending: true,
+      include_docs: true,
+      skip: start,
+      limit: limit
+    }).then(function (data) {
+      dfd.resolve(data);
+    });
+    return dfd;
+  }
+
+
+  function fetchTaggedTasks() {
+
+    var dfd = $.Deferred();
+    var tasks = [];
+    var uriTags = tagsFromUrl();
+
+    var tagViews = function(tag) {
+      return $db.view('couchtasks/tags', {
+        reduce:false,
+        include_docs: true,
+        startkey: [tag],
+        endkey: [tag]
+      });
+    }
+
+    $.when.apply(this, $.map(uriTags, tagViews)).then(function () {
+
+      // Stupid jquery deferred bug
+      if (uriTags.length === 1) {
+        arguments = [arguments];
+      }
+
+      $.each(arguments, function(element, i) {
+        $.each(i[0].rows, function(y) {
+          var exists = function(doc) { return doc._id === i[0].rows[y].id; };
+              if (arraySubset(uriTags, i[0].rows[y].doc.tags) &&
+                  !arrayAny(tasks, exists)) {
+                tasks.push(i[0].rows[y]);
+              }
+        });
+      });
+
+      dfd.resolve({
+        total_rows: false,
+        rows: tasks
+      });
+
+    });
+
+    return dfd.promise();
+  }
+
+
   function updateTaskList() {
 
-    getTags().then(function (tags) {
+    var fun = (!tagsFromUrl().length) ? fetchAllTasks : fetchTaggedTasks;
 
-      if (!tagsFromUrl().length) {
+    var tags = null, tasks = null;
 
-        $db.view('couchtasks/tasks', {
-          descending: true,
-          include_docs: true,
-          limit: currentLimit
-        }).then(function (data) {
-          tasks = $.map(data.rows, function(obj) { return obj.doc; });
-          renderTasksList(tasks, tags, true, data.total_rows < currentLimit);
-        });
+    var start = 0;
+    var limit = 20;
 
-      } else {
+    var paginate = function() {
+      start += 20;
+      $.when(fun(start, limit)).then(function(newtasks) {
+        tasks.rows = tasks.rows.concat(newtasks.rows);
+        renderTasksList(tasks, tags, paginate, start + limit);
+      });
+    };
 
-        var designDocs = function(args) {
-          return $db.view('couchtasks/tags', args);
-        }
-
-        var args = $.map(tagsFromUrl(), function(tag) {
-          return {
-            reduce:false,
-            include_docs: true,
-            startkey: [tag],
-            endkey: [tag]
-          };
-        });
-
-        $.when.apply(this, $.map(args, designDocs)).then(function () {
-
-          // Stupid jquery deferred bug
-          if (args.length === 1) {
-            arguments = [arguments];
-          }
-
-          var tasks = [];
-
-          $.each(arguments, function(element, i) {
-            $.each(i[0].rows, function(y) {
-              var exists = function(doc) { return doc._id === i[0].rows[y].id; };
-              if (arraySubset(tagsFromUrl(), i[0].rows[y].doc.tags) &&
-                  !arrayAny(tasks, exists)) {
-                tasks.push(i[0].rows[y].doc);
-              }
-            });
-          });
-          renderTasksList(tasks, tags, false);
-        });
-      }
+    $.when(getTags(), fun(start, limit)).then(function(aTags, aTasks) {
+      tasks = aTasks;
+      tags = aTags;
+      renderTasksList(tasks, tags, paginate, start + limit);
     });
   }
 
 
-  function renderTasksList(tasks, tags, paginate, end) {
+  function renderTasksList(tasks, tags, updateFun, max) {
 
-    tasks.sort(function(a, b) { return b.index - a.index; });
+    tasks.rows.sort(function(a, b) { return b.doc.index - a.doc.index; });
 
     var date = new Date();
     var today = new Date();
@@ -333,13 +358,14 @@ var Tasks = (function () {
     var completedlists = {};
     var hour = 0;
 
-    $.each(tasks, function(_, obj) {
+    $.each(tasks.rows, function(_, obj) {
+
+      obj = obj.doc;
+      obj.estimate = obj.estimate || 60;
 
       var list = obj.check ? completedlists : todolists;
       var thisDate = obj.check ? new Date() : date;
       var prefix  = obj.check ? "z" : "";
-
-      obj.estimate = obj.estimate || 60;
 
       if (obj.check && obj.check_at) {
         thisDate = new Date(obj.check_at);
@@ -388,17 +414,16 @@ var Tasks = (function () {
     $('#filter_tags').empty().append(renderedTags.children());
     $('#tasks_wrapper').empty().append(rendered.children());
 
-    if (paginate) {
+    if (tasks.total_rows) {
       var wrapper = $('<div id="load_btn_wrapper" />');
       var btn = $('<button id="load_more_btn"></button>');
 
-      if (end) {
+      if (tasks.total_rows < max) {
         btn.text("No More Tasks");
       } else {
         btn.addClass('active').text("Load More Tasks").bind('mousedown', function() {
-          currentLimit += 20;
-          updateTaskList();
           btn.text("Loading");
+          updateFun();
         });
       }
 
