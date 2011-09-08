@@ -441,6 +441,14 @@ var Tasks = (function () {
       $('<div>' + Mustache.to_html($('#tags_tpl').html(), {tags: tags}) +
         '</div>');
 
+    if (!tags.length) {
+      $("#show_filters_btn").removeClass('active');
+      $('#filter_tags').hide();
+      localJSON.set('showFilters', false);
+    } else {
+      $("#show_filters_btn").addClass('active');
+    }
+
     $('#filter_tags').empty().append(renderedTags.children());
     $('#tasks_wrapper').empty().append(rendered.children());
 
