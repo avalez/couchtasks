@@ -279,41 +279,57 @@ var Tasks = (function () {
     return dfd;
   }
 
+  var startIndexes = {};
+  var fetchedAllRows = {};
 
-  function fetchTaggedTasks() {
+  function fetchTaggedTasks(start, limit) {
 
     var dfd = $.Deferred();
     var tasks = [];
     var uriTags = tagsFromUrl();
+    var moreTasks = false;
 
     var tagViews = function(tag) {
       return $db.view('couchtasks/tags', {
         reduce:false,
         include_docs: true,
         startkey: [tag],
-        endkey: [tag]
+        endkey: [tag],
+        skip: startIndexes[tag] || 0,
+        limit: limit
+      }).pipe(function(data) {
+        return [data, tag];
       });
     }
 
     $.when.apply(this, $.map(uriTags, tagViews)).then(function () {
 
-      // Stupid jquery deferred bug
-      if (uriTags.length === 1) {
-        arguments = [arguments];
-      }
+      $.each(arguments, function(_, el) {
 
-      $.each(arguments, function(element, i) {
-        $.each(i[0].rows, function(y) {
-          var exists = function(doc) { return doc._id === i[0].rows[y].id; };
-              if (arraySubset(uriTags, i[0].rows[y].doc.tags) &&
-                  !arrayAny(tasks, exists)) {
-                tasks.push(i[0].rows[y]);
-              }
+        var tag = el[1];
+        startIndexes[tag] = (startIndexes[tag] || 0);
+
+        if (!moreTasks && el[0].total_rows > (el[0].offset + limit)) {
+          moreTasks = true;
+        }
+
+        fetchedAllRows = el[0].total_rows < el[0].offset + limit;
+
+        $.each(el[0].rows, function(_, row) {
+
+          ++startIndexes[tag];
+
+          var exists = function(doc) { return doc._id === row.id; };
+
+          if (arraySubset(uriTags, row.doc.tags) && !arrayAny(tasks, exists)) {
+            tasks.push(row);
+          }
+
         });
       });
 
       dfd.resolve({
-        total_rows: false,
+        total_rows: moreTasks,
         rows: tasks
       });
 
@@ -325,17 +341,19 @@ var Tasks = (function () {
 
   function updateTaskList() {
 
+    startIndexes = {};
+
     var fun = (!tagsFromUrl().length) ? fetchAllTasks : fetchTaggedTasks;
-
     var tags = null, tasks = null;
-
     var start = 0;
-    var limit = 20;
+    var limit = 5;
 
     var paginate = function() {
       start += 20;
       $.when(fun(start, limit)).then(function(newtasks) {
-        tasks.rows = tasks.rows.concat(newtasks.rows);
+        var rows = tasks.rows.concat(newtasks.rows);
+        tasks = newtasks;
+        tasks.rows = rows;
         renderTasksList(tasks, tags, paginate, start + limit);
       });
     };
@@ -414,22 +432,20 @@ var Tasks = (function () {
     $('#filter_tags').empty().append(renderedTags.children());
     $('#tasks_wrapper').empty().append(rendered.children());
 
-    if (tasks.total_rows) {
-      var wrapper = $('<div id="load_btn_wrapper" />');
-      var btn = $('<button id="load_more_btn"></button>');
+    var wrapper = $('<div id="load_btn_wrapper" />');
+    var btn = $('<button id="load_more_btn"></button>');
 
-      if (tasks.total_rows < max) {
-        btn.text("No More Tasks");
-      } else {
-        btn.addClass('active').text("Load More Tasks").bind('mousedown', function() {
-          btn.text("Loading");
-          updateFun();
-        });
-      }
-
-      btn.appendTo(wrapper);
-      wrapper.appendTo($('#tasks_wrapper'));
+    if (tasks.total_rows === false ||
+        (typeof tasks.total_rows === 'number' && tasks.total_rows < max)) {
+      btn.text("No More Tasks");
+    } else {
+      btn.addClass('active').text("Load More Tasks").bind('mousedown', function() {
+        btn.text("Loading");
+        updateFun();
+      });
     }
+    btn.appendTo(wrapper);
+    wrapper.appendTo($('#tasks_wrapper'));
 
     if (!Utils.isMobile()) {
       $('#tasks_wrapper ul').sortable({
