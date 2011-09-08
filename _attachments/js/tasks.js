@@ -279,8 +279,9 @@ var Tasks = (function () {
     return dfd;
   }
 
+  // Keep an index of all the last currently read item for each tag, this
+  // lets us start pagination from the last tag shown
   var startIndexes = {};
-  var fetchedAllRows = {};
 
   function fetchTaggedTasks(start, limit) {
 
@@ -346,22 +347,33 @@ var Tasks = (function () {
     var fun = (!tagsFromUrl().length) ? fetchAllTasks : fetchTaggedTasks;
     var tags = null, tasks = null;
     var start = 0;
-    var limit = 5;
+    var limit = 10;
 
-    var paginate = function() {
-      start += 20;
+    // A tag intersection request may return few or no results, if it Fetches
+    // less than the limit, recusrse until there are at least limit items, or
+    // there are no more items to fetch
+    var renderOrFetch = function(count) {
+      if (tasks.total_rows === true && count < limit) {
+        paginate();
+      } else {
+        renderTasksList(tasks, tags, loadMore, start + limit);
+      }
+    }
+
+    var loadMore = function() {
+      start += limit;
       $.when(fun(start, limit)).then(function(newtasks) {
         var rows = tasks.rows.concat(newtasks.rows);
         tasks = newtasks;
         tasks.rows = rows;
-        renderTasksList(tasks, tags, paginate, start + limit);
+        renderOrFetch(newtasks.rows.length);
       });
     };
 
     $.when(getTags(), fun(start, limit)).then(function(aTags, aTasks) {
       tasks = aTasks;
       tags = aTags;
-      renderTasksList(tasks, tags, paginate, start + limit);
+      renderOrFetch(aTasks.rows.length);
     });
   }
 
