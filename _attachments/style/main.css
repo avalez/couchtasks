@@ -234,7 +234,9 @@ header a:first-child {
     font: 1em Georgia, serif;
     font-style: italic;
     text-align: center;
-    text-shadow: 1px 1px 1px #FFF;
+    text-shadow: 1px 1px 1px #000;
+    margin:0px;
+    margin-top:10px;
 }
 
 .task_link {
