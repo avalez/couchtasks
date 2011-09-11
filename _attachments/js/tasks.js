@@ -392,7 +392,7 @@ var Tasks = (function () {
 
     var date = new Date();
     var today = new Date();
-    var todolists = {};
+    var lists = {};
     var completedlists = {};
     var hour = 0;
 
@@ -401,7 +401,6 @@ var Tasks = (function () {
       obj = obj.doc;
       obj.estimate = obj.estimate || 60;
 
-      var list = obj.check ? completedlists : todolists;
       var thisDate = obj.check ? new Date() : date;
 
       if (obj.due_date) {
@@ -412,18 +411,18 @@ var Tasks = (function () {
         thisDate = new Date(obj.check_at);
       }
 
-      var prefix = thisDate.getYear() + "-" + thisDate.getMonth() + "-" +
-        thisDate.getDate();
+      var groupKey = thisDate.getYear() + "-" + thisDate.getMonth() + "-" +
+        thisDate.getDate() + (!!obj.check ? "completed" : "todo") ;
 
-      if (typeof list[prefix] === 'undefined') {
-        list[prefix] = {
+      if (typeof lists[groupKey] === 'undefined') {
+        lists[groupKey] = {
           jsonDate: thisDate,
           date:formatDate(thisDate),
           notes: [],
-          completed: prefix === 'z'
+          completed: !!obj.check
         };
       }
-      list[prefix].notes.push(obj);
+      lists[groupKey].notes.push(obj);
       if (!obj.check) {
         hour += obj.estimate;
       }
@@ -435,12 +434,17 @@ var Tasks = (function () {
 
     var obj = {tasklist: []};
 
-    for (var x in todolists) {
-      obj.tasklist.push(todolists[x]);
+    for (var x in lists) {
+      obj.tasklist.push(lists[x]);
     }
-    for (var x in completedlists) {
-      obj.tasklist.push(completedlists[x]);
-    }
+
+    obj.tasklist.sort( function(a, b) {
+      if (a.completed !== b.completed) {
+        return a.completed ? 1 : -1;
+      } else {
+        return (a.jsonDate > b.jsonDate) ? 1 : -1;
+      }
+    });
 
     var rendered =
       $('<div>' + Mustache.to_html($('#rows_tpl').html(), obj) + '</div>');
