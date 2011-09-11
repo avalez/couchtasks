@@ -747,7 +747,7 @@ var Tasks = (function () {
   // Lets start this baby
   router.init(window);
 
-  $('body').noisy({
+  $('header').noisy({
     intensity: 1,
     size: 200,
     monochrome: false
