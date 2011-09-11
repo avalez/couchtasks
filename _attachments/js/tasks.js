@@ -121,6 +121,7 @@ var Tasks = (function () {
     }).then(updateTaskList);
   });
 
+
   router.post('#edit', function (_, e, details) {
 
     $db.openDoc(details.id).then(function (doc) {
@@ -328,7 +329,9 @@ var Tasks = (function () {
 
           ++startIndexes[tag];
 
-          var exists = function(doc) { return doc._id === row.id; };
+          var exists = function(doc) {
+            return doc.id === row.id;
+          };
 
           if (arraySubset(uriTags, row.doc.tags) && !arrayAny(tasks, exists)) {
             tasks.push(row);
@@ -625,12 +628,12 @@ var Tasks = (function () {
    */
   function extractHashTags(text) {
 
-    var matches = text.match(/\#([\w\-\.]*[\w]+[\w\-\.]*)/g) || [];
+    var matches = text.match(/#([^\s]*)/g) || [];
     var tags = $.map(matches, function(tag) { return tag.slice(1); });
 
     return {
       tags: tags,
-      text: text.replace(/\#([\w\-\.]*[\w]+[\w\-\.]*)/g, '').trim()
+      text: text.replace(/#([^\s]*)/g, '').trim()
     };
   }
 

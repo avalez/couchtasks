@@ -71,8 +71,8 @@ var Router = (function() {
 
   function urlChanged(e, opts) {
     opts = opts || {};
-    history.push("#" + (document.location.href.split("#")[1] || ""));
-    trigger("GET", "#" + (document.location.href.split("#")[1] || ""), null, null, opts);
+    history.push("#" + (document.location.hash.slice(1) || ""));
+    trigger("GET", "#" + (document.location.hash.slice(1) || ""), null, null, opts);
   }
 
   function forward(url) {
