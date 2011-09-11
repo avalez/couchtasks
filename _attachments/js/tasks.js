@@ -86,6 +86,10 @@ var Tasks = (function () {
       doc = doc[0];
       doc.estimate = doc.estimate || 60;
 
+      if (doc.due_date) {
+        doc.date = formatDate2(new Date(doc.due_date));
+      }
+
       doc.tags = $.each(tags, function(_, obj) {
         obj.active = !($.inArray(obj.tag, doc.tags) === -1);
       });
@@ -127,6 +131,10 @@ var Tasks = (function () {
       $('.tag_wrapper .tag.active').each(function () {
         tags.push($(this).attr('data-key'));
       });
+
+      if (Date.parse(details.due_date)) {
+        doc.due_date = new Date(details.due_date);
+      }
 
       doc.estimate = parseInt(details.estimate, 10);
       doc.tags = tags.concat(parsedTags.tags);
@@ -395,21 +403,27 @@ var Tasks = (function () {
 
       var list = obj.check ? completedlists : todolists;
       var thisDate = obj.check ? new Date() : date;
-      var prefix  = obj.check ? "z" : "";
+
+      if (obj.due_date) {
+        thisDate = new Date(obj.due_date);
+      }
 
       if (obj.check && obj.check_at) {
         thisDate = new Date(obj.check_at);
       }
 
-      if (typeof list[prefix + thisDate.toDateString()] === 'undefined') {
-        list[prefix + thisDate.toDateString()] = {
+      var prefix = thisDate.getYear() + "-" + thisDate.getMonth() + "-" +
+        thisDate.getDate();
+
+      if (typeof list[prefix] === 'undefined') {
+        list[prefix] = {
           jsonDate: thisDate,
           date:formatDate(thisDate),
           notes: [],
           completed: prefix === 'z'
         };
       }
-      list[prefix + thisDate.toDateString()].notes.push(obj);
+      list[prefix].notes.push(obj);
       if (!obj.check) {
         hour += obj.estimate;
       }
@@ -625,6 +639,14 @@ var Tasks = (function () {
     var prefix = (d === 1) ? 'st' : (d === 2) ? 'nd' : (d === 3) ? 'rd' : 'th';
     return days[date.getDay()] + " " + date.getDate() + prefix +
       " of " + months[date.getMonth()];
+  }
+
+
+  /*
+   * What it says on the tin
+   */
+  function formatDate2(date) {
+    return (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
   }
 
 

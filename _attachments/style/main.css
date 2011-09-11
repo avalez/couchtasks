@@ -462,6 +462,11 @@ div.tag_wrapper .tag {
 #edit_task_form .checkbox {
     float: right;
 }
+#due_date {
+    float:right;
+    padding:3px;
+    margin-top: 9px;
+}
 #edit_task_form label {
     text-shadow: 1px 1px 2px #000;
 }
