@@ -137,6 +137,44 @@
     </script>
 
 
+    <script type="text/html" id="date_dialog_tpl">
+      <div class="dialog">
+        <div class="dialog_content">
+          <div class="date_wrapper">
+            <h4 class="date_label">1st January, 1985</h4>
+            <table cellspacing="0">
+            <thead>
+              <th>Day</th>
+              <th>Month</th>
+              <th>Year</th>
+            </thead>
+            <tr>
+              <td><input type="button" value="+" data-key="day" class="inc" /></td>
+              <td><input type="button" value="+" data-key="month" class="inc" /></td>
+              <td><input type="button" value="+" data-key="year"class="inc" /></td>
+            </tr>
+            <tr>
+              <td><span class="day_label">11</span></td>
+              <td><span class="month_label">01</span></td>
+              <td><span class="year_label">85</span></td>
+            </tr>
+            <tr>
+              <td><input type="button" value="-" data-key="day" class="inc" /></td>
+              <td><input type="button" value="-" data-key="month" class="inc" /></td>
+              <td><input type="button" value="-" data-key="year" class="inc" /></td>
+            </tr>
+          </table>
+          <div id="btns">
+            <input type="button" value="Cancel" id="cancel_btn" class="cancel" />
+            <input type="submit" value="Set Date" id="set_date_btn" class="set_date" />
+            <br style="clear:both" />
+          </div>
+        </div>
+        </div>
+      </div>
+    </script>
+
+
   </body>
 
   <script src="./js/jquery-1.6.min.js"></script>

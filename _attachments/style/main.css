@@ -462,6 +462,10 @@ div.tag_wrapper .tag {
 #edit_task_form .checkbox {
     float: right;
 }
+.date_replace {
+    float: right;
+}
+
 #due_date {
     float:right;
     padding:3px;
@@ -487,4 +491,84 @@ button.warning {
 
 .deleted .tag {
     opacity:0.3;
+}
+
+.dialog {
+    background: rgba(0, 0, 0, 0.6);
+    position:absolute;
+    top:0px;
+    left:0px;
+    right:0px;
+    bottom: 0px;
+}
+
+.dialog_content {
+    width:300px;
+    background: white;
+    padding:5px;
+    margin:20px auto;
+}
+
+.date_wrapper {
+    padding:10px;
+    background: #333;
+}
+
+.date_wrapper h4 {
+    margin:0px;
+}
+
+.date_wrapper span {
+    display:block;
+    color:#333;
+    padding:5px;
+    background:white;
+}
+
+table {
+    margin: 0px auto;
+}
+td, th {
+    text-align: center;
+    width:80px;
+    display: inline-block;
+}
+td input {
+    display: block;
+    width: 100%;
+    margin:0px;
+    padding:10px 0px;
+    border: 0px;
+}
+
+input[type=button], input[type=submit] {
+    color: #333;
+}
+
+#cancel_btn {
+    width:40%;
+    float:left;
+}
+#set_date_btn {
+    width: 40%;
+    float: right;
+}
+
+tr, td, th {
+    margin:0px;
+    padding:0px;
+    border: 0px;
+}
+
+th {
+    font-weight: normal;
+    font-size: 12px;
+}
+#btns input {
+    line-height: 40px;
+    height: 40px;
+}
+
+table, #btns {
+    margin-top: 10px;
 }

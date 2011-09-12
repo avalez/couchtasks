@@ -35,6 +35,70 @@ var localJSON = (function(){
 
 var Tasks = (function () {
 
+  var datePicker = function(nDate, done) {
+
+    var $dom = $($("#date_dialog_tpl").html());
+    var date = nDate;
+
+    var $day = $dom.find(".day_label");
+    var $month = $dom.find(".month_label");
+    var $year = $dom.find(".year_label");
+    var $date = $dom.find(".date_label");
+
+    var inc = {
+      day: function(mult) {
+        date.setDate(date.getDate() + mult);
+      },
+      month: function(mult) {
+        date.setMonth(date.getMonth() + mult);
+      },
+      year: function(mult) {
+        date.setYear(date.getYear() + mult);
+      },
+    };
+
+
+    var close = function() {
+      $dom.remove();
+    };
+
+
+    var updateDate = function() {
+      $day.text(date.getDate());
+      $month.text(date.getMonth() + 1);
+      $year.text(date.getFullYear() % 1000);
+      $date.text(formatDate(date));
+    }
+
+
+    $dom.find(".cancel").bind('mousedown', function() {
+      close();
+    });
+
+
+    $dom.find(".set_date").bind('mousedown', function() {
+      done(date);
+      close();
+    });
+
+
+    $dom.find(".inc").bind('mousedown', function() {
+      var mult = $(this).val() === '-' ? -1 : 1;
+      inc[$(this).data('key')](mult);
+      updateDate();
+    });
+
+
+    updateDate(date);
+
+
+    return {
+      dom: $dom
+    };
+
+  };
+
+
   // This is the list of predefined tag colours, if there are more tags
   // than colours then tags turn black
   var tagColors = [
@@ -101,9 +165,29 @@ var Tasks = (function () {
       });
 
       render('task_tpl', null, doc, function(dom) {
+
+        var $replace = $('<span class="date_replace"></span>');
+        var $date = $('input[type=date]', dom[0]);
+
+        var init = doc.due_date ? new Date(doc.due_date) : new Date();
+        $replace.text(formatDate(init));
+
+        $date.hide().after($replace);
+
+        $replace.bind('click', function(e) {
+          var dateVal = $date.val();
+          var date = dateVal === '' ? new Date() : new Date(dateVal);
+          var dateWidget = new datePicker(date, function(date) {
+            $date.val(formatDate2(date));
+            $replace.text(formatDate(date));
+          });
+          $("body").append(dateWidget.dom);
+        });
+
         $('a.tag', dom[0]).live('click', function(e) {
           $(e.target).toggleClass('active');
         });
+
       });
     });
 
