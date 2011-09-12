@@ -171,7 +171,7 @@ var Tasks = (function () {
 
       render('task_tpl', null, doc, function(dom) {
 
-        var $replace = $('<span class="date_replace"></span>');
+        var $replace = $('<span class="date_replace button"></span>');
         var $date = $('input[type=date]', dom[0]);
 
         var init = doc.due_date ? Date.parse(doc.due_date.substring(0, 10))
