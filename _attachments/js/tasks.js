@@ -53,7 +53,7 @@ var Tasks = (function () {
         date.setMonth(date.getMonth() + mult);
       },
       year: function(mult) {
-        date.setYear(date.getYear() + mult);
+        date.setYear(date.getFullYear() + mult);
       },
     };
 
@@ -65,7 +65,7 @@ var Tasks = (function () {
 
     var updateDate = function() {
       $day.text(date.getDate());
-      $month.text(date.getMonth() + 1);
+      $month.text(months[date.getMonth()]);
       $year.text(date.getFullYear() % 1000);
       $date.text(formatDate(date));
     }
@@ -124,6 +124,11 @@ var Tasks = (function () {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
+  var months_abbr = [
+    'Jan', 'Feb', 'March', 'April', 'May', 'June',
+    'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+
   var dbName = document.location.pathname.split('/')[1];
   var $db = $.couch.db(dbName);
   var $changes;
@@ -151,7 +156,7 @@ var Tasks = (function () {
       doc.estimate = doc.estimate || 60;
 
       if (doc.due_date) {
-        doc.date = formatDate2(new Date(doc.due_date));
+        doc.date = formatDate2(Date.parse(doc.due_date.substring(0, 10)));
       }
 
       doc.tags = $.each(tags, function(_, obj) {
@@ -169,17 +174,17 @@ var Tasks = (function () {
         var $replace = $('<span class="date_replace"></span>');
         var $date = $('input[type=date]', dom[0]);
 
-        var init = doc.due_date ? new Date(doc.due_date) : new Date();
-        $replace.text(formatDate(init));
+        var init = doc.due_date ? Date.parse(doc.due_date.substring(0, 10))
+          : Date.today();
+        $replace.text(formatDate3(init));
 
         $date.hide().after($replace);
 
         $replace.bind('click', function(e) {
-          var dateVal = $date.val();
-          var date = dateVal === '' ? new Date() : new Date(dateVal);
+          var date = $date.val() === '' ? Date.today() : Date.parse($date.val());
           var dateWidget = new datePicker(date, function(date) {
             $date.val(formatDate2(date));
-            $replace.text(formatDate(date));
+            $replace.text(formatDate3(date));
           });
           $("body").append(dateWidget.dom);
         });
@@ -218,7 +223,7 @@ var Tasks = (function () {
       });
 
       if (Date.parse(details.due_date)) {
-        doc.due_date = new Date(details.due_date);
+        doc.due_date = Date.parse(details.due_date);
       }
 
       doc.estimate = parseInt(details.estimate, 10);
@@ -491,11 +496,11 @@ var Tasks = (function () {
       var thisDate = obj.check ? new Date() : date;
 
       if (obj.due_date) {
-        thisDate = new Date(obj.due_date);
+        thisDate = Date.parse(obj.due_date.substring(0, 10));
       }
 
       if (obj.check && obj.check_at) {
-        thisDate = new Date(obj.check_at);
+        thisDate = Date.parse(obj.check_at.substring(0, 10));
       }
 
       var groupKey = thisDate.getYear() + "-" + thisDate.getMonth() + "-" +
@@ -729,7 +734,7 @@ var Tasks = (function () {
     var d = date.getDate();
     var prefix = (d === 1) ? 'st' : (d === 2) ? 'nd' : (d === 3) ? 'rd' : 'th';
     return days[date.getDay()] + " " + date.getDate() + prefix +
-      " of " + months[date.getMonth()];
+      " of " + months[date.getMonth()] + ', ' + date.getFullYear();
   }
 
 
@@ -738,6 +743,17 @@ var Tasks = (function () {
    */
   function formatDate2(date) {
     return (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
+  }
+
+
+  /*
+   * What it says on the tin
+   */
+  function formatDate3(date) {
+    var d = date.getDate();
+    var prefix = (d === 1) ? 'st' : (d === 2) ? 'nd' : (d === 3) ? 'rd' : 'th';
+    return days[date.getDay()] + " " + date.getDate() + prefix +
+      ' ' + months_abbr[date.getMonth()] + ', ' + date.getFullYear();
   }
 
 

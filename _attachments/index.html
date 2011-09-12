@@ -141,35 +141,37 @@
       <div class="dialog">
         <div class="dialog_content">
           <div class="date_wrapper">
-            <h4 class="date_label">1st January, 1985</h4>
-            <table cellspacing="0">
-            <thead>
-              <th>Day</th>
-              <th>Month</th>
-              <th>Year</th>
-            </thead>
-            <tr>
-              <td><input type="button" value="+" data-key="day" class="inc" /></td>
-              <td><input type="button" value="+" data-key="month" class="inc" /></td>
-              <td><input type="button" value="+" data-key="year"class="inc" /></td>
-            </tr>
-            <tr>
-              <td><span class="day_label">11</span></td>
-              <td><span class="month_label">01</span></td>
-              <td><span class="year_label">85</span></td>
-            </tr>
-            <tr>
-              <td><input type="button" value="-" data-key="day" class="inc" /></td>
-              <td><input type="button" value="-" data-key="month" class="inc" /></td>
-              <td><input type="button" value="-" data-key="year" class="inc" /></td>
-            </tr>
-          </table>
-          <div id="btns">
-            <input type="button" value="Cancel" id="cancel_btn" class="cancel" />
-            <input type="submit" value="Set Date" id="set_date_btn" class="set_date" />
-            <br style="clear:both" />
+            <h4 class="date_label"></h4>
+
+            <div class="picker_wrapper">
+
+            <div class="picker">
+              <h4>Day</h4>
+              <input type="button" value="+" data-key="day" class="inc top" />
+              <div class="day_label dlabel"></div>
+              <input type="button" value="-" data-key="day" class="inc bottom" />
+            </div>
+
+            <div class="picker month">
+              <h4>Month</h4>
+              <input type="button" value="+" data-key="month" class="inc top" />
+              <div class="month_label dlabel"></div>
+              <input type="button" value="-" data-key="month" class="inc bottom" />
+            </div>
+
+            <div class="picker year">
+              <h4>Year</h4>
+              <input type="button" value="+" data-key="year" class="inc top" />
+              <div class="year_label dlabel"></div>
+              <input type="button" value="-" data-key="year" class="inc bottom" />
+            </div>
+            </div>
+            <div id="btns">
+              <button id="cancel_btn" class="cancel warning active">Cancel</button>
+              <button id="set_date_btn" class="set_date active">Set Date</button>
+              <br style="clear:both" />
+            </div>
           </div>
-        </div>
         </div>
       </div>
     </script>
@@ -182,6 +184,7 @@
   <script src="./js/jquery-ui-1.8.10.custom.min.js"></script>
   <script src="./js/jquery.noisy.min.js"></script>
   <script src="./js/jquery.couch.js"></script>
+  <script src="./js/date.js"></script>
   <script src="./js/router.js"></script>
   <script src="./js/mustache.js"></script>
   <script src="./js/utils.js"></script>

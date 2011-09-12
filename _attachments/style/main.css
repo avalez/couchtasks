@@ -486,7 +486,7 @@ div.tag_wrapper .tag {
 
 button.warning {
     background: -moz-linear-gradient(center top , #9D4846, #9D0300) repeat scroll 0 0 transparent;
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#B8DB29), color-stop(100%,#5A8F00));
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#9D4846), color-stop(100%,#9D0300));
 }
 
 .deleted .tag {
@@ -504,8 +504,8 @@ button.warning {
 
 .dialog_content {
     width:300px;
-    background: white;
-    padding:5px;
+    background: #666;
+    padding:3px;
     margin:20px auto;
 }
 
@@ -516,29 +516,21 @@ button.warning {
 
 .date_wrapper h4 {
     margin:0px;
-}
-
-.date_wrapper span {
-    display:block;
-    color:#333;
-    padding:5px;
-    background:white;
-}
-
-table {
-    margin: 0px auto;
-}
-td, th {
+    border-bottom: 1px solid #666;
+    padding-bottom: 5px;
     text-align: center;
-    width:80px;
-    display: inline-block;
 }
-td input {
+
+.picker { width: 80px; float:left; margin: 10px 10px 0 0; }
+
+.picker input {
     display: block;
     width: 100%;
     margin:0px;
-    padding:10px 0px;
+    padding:5px 0px;
     border: 0px;
+    font-size:26px;
+    cursor:pointer;
 }
 
 input[type=button], input[type=submit] {
@@ -554,15 +546,13 @@ input[type=button], input[type=submit] {
     float: right;
 }
 
-tr, td, th {
-    margin:0px;
-    padding:0px;
-    border: 0px;
-}
-
-th {
+.picker h4 {
     font-weight: normal;
     font-size: 12px;
+}
+
+#btns {
+    margin-top: 10px;
 }
 #btns input {
     line-height: 40px;
@@ -572,3 +562,33 @@ th {
 table, #btns {
     margin-top: 10px;
 }
+
+.top {
+    border-radius: 5px 5px 0px 0px;
+}
+
+.bottom {
+    border-radius: 0px 0px 5px 5px ;
+}
+
+.picker div {
+    text-align: center;
+}
+.dlabel {
+    background: white;
+    color: #222;
+    padding: 15px 0;
+}
+
+.picker.month {
+    width: 100px;
+}
+
+.picker.year {
+    margin-right: 0px;
+}
+
+.picker_wrapper {
+    overflow:auto;
+}
+
