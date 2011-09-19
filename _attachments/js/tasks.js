@@ -187,10 +187,6 @@ var Tasks = (function () {
   });
 
 
-  router.get('#/login/', function (_, id) {
-    render('login_tpl');
-  });
-
   router.get('#/sync/', function (_, id) {
 
     var syncinfo = $db.openDoc("_local/config", {error:nil});
@@ -301,18 +297,22 @@ var Tasks = (function () {
     $.couch.activeTasks().then(function(tasks) {
       var push = _.select(tasks, isPushReplication)[0];
       var pull = _.select(tasks, isPullReplication)[0];
-      $.when(cancelReplication(push.replication_id),
-             cancelReplication(pull.replication_id)).then(function() {
-               dfd.resolve();
-             });
+      $.when(cancelReplication(push), cancelReplication(pull)).then(function() {
+        dfd.resolve();
+      });
     });
     return dfd.promise();
   }
 
 
-  function cancelReplication(id) {
+  function cancelReplication(repl) {
+    if (!repl) {
+      var dfd = $.Deferred();
+      dfd.resolve();
+      return dfd.promise();
+    }
     var obj = {
-      replication_id: id,
+      replication_id: repl.replication_id,
       cancel: true
     };
     return $.ajax({
@@ -361,7 +361,7 @@ var Tasks = (function () {
       };
 
       $db.saveDoc(config).then(function() {
-        document.location.href = "#/sync/";
+        router.refresh();
       });
     };
 

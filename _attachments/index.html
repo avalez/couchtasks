@@ -177,14 +177,6 @@
       </div>
     </script>
 
-    <script type="text/html" id="login_tpl">
-      <form action="#create_sync" id="create_replication_form">
-        <input type="text" name="username" placeholder="Enter Username" />
-        <input type="password" name="password" placeholder="Enter Password" />
-        <input type="submit" class="button" value="Register to sync" />
-      </form>
-    </script>
-
 
     <script type="text/html" id="sync_tpl">
 
@@ -204,7 +196,15 @@
         </form>
         {{/registered}}
         {{^registered}}
-        <a href="#/login/" class="button">Register / Login</a>
+        <form action="#create_sync" id="create_replication_form">
+          <input type="text" name="username" placeholder="Enter Username" />
+          <div class="input">
+            <label for="new_user">I am a new user</label>
+            <input type="checkbox" name="new_user" id="new_user" />
+          </div>
+          <input type="password" name="password" placeholder="Enter Password" />
+          <input type="submit" class="button" value="Register / Login" />
+        </form>
         {{/registered}}
       </div>
 
