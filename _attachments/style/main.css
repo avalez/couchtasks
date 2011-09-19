@@ -188,6 +188,10 @@ header a {
     background-image:url(../img/checked.png);
 }
 
+.sync {
+    background-image:url(../img/cloud.png);
+}
+
 .home_tpl .home {
     opacity: 1;
 }
@@ -431,6 +435,7 @@ div.tag_wrapper .tag {
     display: none;
 }
 
+#create_replication_form input,
 #edit_task_form input, #edit_task_form textarea {
     border-radius: 5px;
     color: #eee;
@@ -439,6 +444,10 @@ div.tag_wrapper .tag {
     border-color: #222 #222 #333 #222;
     box-shadow:0px 1px 1px #777;
     -webkit-box-shadow:0px 1px 1px #777;
+}
+
+#create_replication_form input {
+    margin-top: 10px;
 }
 
 #edit_task_form textarea {
@@ -462,11 +471,13 @@ div.tag_wrapper .tag {
 #edit_task_form .checkbox {
     float: right;
 }
-.date_replace {
+span.date_replace {
     text-indent: 30px;
     float: right;
     padding: 0 10px;
     margin-top:5px;
+    background: url(../img/91.png) 10px center no-repeat, -moz-linear-gradient(top, #666, #555);
+    background: url(../img/91.png) 10px center no-repeat, -webkit-linear-gradient(top, #666, #555);
 }
 
 .button {
@@ -476,8 +487,8 @@ div.tag_wrapper .tag {
     border-color: #333 #333 #222 #333;
     color:#CCC;
     line-height: 30px;
-    background: url(../img/91.png) 10px center no-repeat, -moz-linear-gradient(top, #666, #555);
-    background: url(../img/91.png) 10px center no-repeat, -webkit-linear-gradient(top, #666, #555);
+    background: -moz-linear-gradient(top, #666, #555);
+    background: -webkit-linear-gradient(top, #666, #555);
 }
 
 #due_date {
@@ -547,10 +558,6 @@ button.warning {
     cursor:pointer;
 }
 
-input[type=button], input[type=submit] {
-    color: #333;
-}
-
 #cancel_btn {
     width:40%;
     float:left;
@@ -607,3 +614,20 @@ table, #btns {
     overflow:auto;
 }
 
+#sync_wrapper {
+    padding: 10px;
+}
+#sync_wrapper form {
+    padding: 0px;
+}
+#sync_wrapper input {
+    width:100%;
+}
+
+#sync_wrapper .button {
+    display: block;
+    margin-bottom: 10px;
+    color:white;
+    padding: 10px;
+    text-decoration: none;
+}

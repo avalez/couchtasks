@@ -48,6 +48,10 @@
       parts.shift();
       return "_design/" + encodeURIComponent(parts.join('/'));
     }
+    if (parts[0] == "_local") {
+      parts.shift();
+      return "_local/" + encodeURIComponent(parts.join('/'));
+    }
     return encodeURIComponent(docID);
   }
 

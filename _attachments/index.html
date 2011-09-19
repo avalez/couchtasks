@@ -18,6 +18,7 @@
 
     <header>
       <a href="#" class="home"></a>
+      <a href="#/sync/" class="sync"></a>
       <button id="save_task_btn" class="active">Save</button>
       <button id="show_filters_btn">Show Filters</button>
     </header>
@@ -176,11 +177,45 @@
       </div>
     </script>
 
+    <script type="text/html" id="login_tpl">
+      <form action="#create_sync" id="create_replication_form">
+        <input type="text" name="username" placeholder="Enter Username" />
+        <input type="password" name="password" placeholder="Enter Password" />
+        <input type="submit" class="button" value="Register to sync" />
+      </form>
+    </script>
+
+
+    <script type="text/html" id="sync_tpl">
+
+      <div id="sync_wrapper">
+        {{#registered}}
+        <form action="#toggle_sync">
+          <input type="hidden" name="active"
+                 value="{{#active}}true{{/active}}{{^active}}false{{/active}}" />
+          <input type="hidden" name="username" value="{{username}}" />
+          <input type="hidden" name="password" value="{{password}}" />
+          <input type="submit" class="button" id="repl_status"
+                 value="{{#active}}Pause{{/active}}{{^active}}Activate{{/active}}&nbsp;Sync" />
+        </form>
+
+        <form action="#delete_sync">
+          <input type="submit" class="button" value="Delete Sync" />
+        </form>
+        {{/registered}}
+        {{^registered}}
+        <a href="#/login/" class="button">Register / Login</a>
+        {{/registered}}
+      </div>
+
+    </script>
+
 
   </body>
 
   <script src="./js/jquery-1.6.min.js"></script>
   <script src="./js/modernizr-1.7.min.js"></script>
+  <script src="./js/underscore.js"></script>
   <script src="./js/jquery-ui-1.8.10.custom.min.js"></script>
   <script src="./js/jquery.noisy.min.js"></script>
   <script src="./js/jquery.couch.js"></script>

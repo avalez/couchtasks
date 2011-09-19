@@ -13,6 +13,8 @@ $.ajaxSetup({
   cache: false
 });
 
+var nil = function() { };
+
 
 // Basic wrapper for localStorage
 var localJSON = (function(){
@@ -32,6 +34,41 @@ var localJSON = (function(){
   };
 })();
 
+
+// parseUri 1.2.2
+// (c) Steven Levithan <stevenlevithan.com>
+// MIT License
+
+function parseUri (str) {
+  var o = parseUri.options;
+  var m = o.parser[o.strictMode ? "strict" : "loose"].exec(str);
+  var uri = {};
+  var i = 14;
+
+  while (i--) uri[o.key[i]] = m[i] || "";
+
+  uri[o.q.name] = {};
+  uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+    if ($1) uri[o.q.name][$1] = $2;
+  });
+
+  return uri;
+};
+
+parseUri.options = {
+  strictMode: false,
+  key: ["source", "protocol", "authority", "userInfo", "user",
+        "password", "host", "port", "relative", "path", "directory",
+        "file", "query", "anchor"],
+  q:   {
+    name:   "queryKey",
+    parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+  },
+  parser: {
+    strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+    loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+  }
+};
 
 var Tasks = (function () {
 
@@ -99,6 +136,8 @@ var Tasks = (function () {
   };
 
 
+  var syncHost = "couchtasks.arandomurl.com";
+
   // This is the list of predefined tag colours, if there are more tags
   // than colours then tags turn black
   var tagColors = [
@@ -146,6 +185,42 @@ var Tasks = (function () {
   router.get('#/?', function (_, t) {
     router.forward('#/tags/');
   });
+
+
+  router.get('#/login/', function (_, id) {
+    render('login_tpl');
+  });
+
+  router.get('#/sync/', function (_, id) {
+
+    var syncinfo = $db.openDoc("_local/config", {error:nil});
+    var tasks = $.couch.activeTasks();
+
+    $.when(syncinfo, tasks).always(function (info, repls) {
+      var config = info[0];
+      var registered = config.sync;
+      var active = registered && arrayAny(repls[0], isPullReplication) &&
+        arrayAny(repls[0], isPushReplication);
+
+      render('sync_tpl', {}, {
+        username: registered && config.sync.username || "",
+        password: registered && config.sync.password || "",
+        registered: registered,
+        active: active
+      });
+    });
+  });
+
+  function isPullReplication(doc) {
+    return doc.target === dbName &&
+      parseUri(doc.source).host === syncHost;
+  }
+
+
+  function isPushReplication(doc) {
+    return doc.source === dbName &&
+      parseUri(doc.target).host === syncHost;
+  }
 
 
   router.get('#/task/:id/', function (_, id) {
@@ -208,6 +283,93 @@ var Tasks = (function () {
         updateFilterUrl($(e.target).data('key'));
       });
     }).then(updateTaskList);
+  });
+
+
+  router.post('#delete_sync', function (_, e, details) {
+    cancelSync().then(function() {
+      $db.openDoc("_local/config", {error:nil}).then(function(config) {
+        delete config.sync;
+        $db.saveDoc(config).then(router.refresh);
+      });
+    });
+  });
+
+
+  function cancelSync() {
+    var dfd = $.Deferred();
+    $.couch.activeTasks().then(function(tasks) {
+      var push = _.select(tasks, isPushReplication)[0];
+      var pull = _.select(tasks, isPullReplication)[0];
+      $.when(cancelReplication(push.replication_id),
+             cancelReplication(pull.replication_id)).then(function() {
+               dfd.resolve();
+             });
+    });
+    return dfd.promise();
+  }
+
+
+  function cancelReplication(id) {
+    var obj = {
+      replication_id: id,
+      cancel: true
+    };
+    return $.ajax({
+      type: 'POST',
+      url: '/_replicate',
+      contentType: 'application/json',
+      data: JSON.stringify(obj)
+    });
+  }
+
+
+  router.post('#toggle_sync', function (_d, e, details) {
+
+    $("#repl_status").val("Saving...");
+
+    if (details.active !== 'false') {
+
+      cancelSync().then(function() {
+        router.refresh();
+      });
+
+    } else {
+
+      var opts = {continuous: true};
+      var local = 'couchtasks';
+      var remote = 'http://' + details.username + ':' + details.password + '@' +
+        syncHost + '/' + details.username;
+
+      $.when($.couch.replicate(local, remote, {error:nil}, opts),
+             $.couch.replicate(remote, local, {error:nil}, opts)).then(function() {
+               router.refresh();
+             }).fail(function() {
+               $("#repl_status").val("Failed!");
+             });
+    }
+  });
+
+
+  router.post('#create_sync', function (_, e, details) {
+
+    var saveDetails = function(config) {
+
+      config.sync = {
+        username: details.username,
+        password: details.password
+      };
+
+      $db.saveDoc(config).then(function() {
+        document.location.href = "#/sync/";
+      });
+    };
+
+    $db.openDoc("_local/config", {error:nil}).then(function(config) {
+      saveDetails(config);
+    }).fail(function() {
+      saveDetails({_id: "_local/config"});
+    });
   });
 
 
