@@ -190,11 +190,11 @@ var Tasks = (function () {
   router.get('#/sync/', function (_, id) {
 
     var syncinfo = $db.openDoc("_local/config", {error:nil});
-    var tasks = $.couch.activeTasks();
+    var tasks = $.couch.activeTasks({error: nil});
 
     $.when(syncinfo, tasks).always(function (info, repls) {
       var config = info[0];
-      var registered = config.sync;
+      var registered = config && config.sync;
       var active = registered && arrayAny(repls[0], isPullReplication) &&
         arrayAny(repls[0], isPushReplication);
 
