@@ -1,5 +1,4 @@
 
-
 window.log = function() {
   log.history = log.history || [];
   log.history.push(arguments);
@@ -168,9 +167,17 @@ var Tasks = (function () {
     'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
 
-  var dbName = document.location.pathname.split('/')[1];
+  var plainCouchApp = /_design\/couchtasks/.test(document.location.pathname);
+
+  if (!plainCouchApp) {
+    $.couch.urlPrefix = "/couch";
+  }
+
+  var parts = document.location.pathname.split('/');
+  var dbName = plainCouchApp ? parts[1] : parts[2];
   var $db = $.couch.db(dbName);
   var $changes;
+
 
   var router = Router();
 
@@ -189,22 +196,26 @@ var Tasks = (function () {
 
   router.get('#/sync/', function (_, id) {
 
-    var syncinfo = $db.openDoc("_local/config", {error:nil});
-    var tasks = $.couch.activeTasks({error: nil});
+    if (plainCouchApp) {
+      var syncinfo = $db.openDoc("_local/config", {error:nil});
+      var tasks = $.couch.activeTasks({error: nil});
 
-    $.when(syncinfo, tasks).always(function (info, repls) {
-      var config = info[0];
-      var registered = config && config.sync;
-      var active = registered && arrayAny(repls[0], isPullReplication) &&
-        arrayAny(repls[0], isPushReplication);
+      $.when(syncinfo, tasks).always(function (info, repls) {
+        var config = info[0];
+        var registered = config && config.sync;
+        var active = registered && arrayAny(repls[0], isPullReplication) &&
+          arrayAny(repls[0], isPushReplication);
 
-      render('sync_tpl', {}, {
-        username: registered && config.sync.username || "",
-        password: registered && config.sync.password || "",
-        registered: registered,
-        active: active
+        render('sync_tpl', {}, {
+          username: registered && config.sync.username || "",
+          password: registered && config.sync.password || "",
+          registered: registered,
+          active: active
+        });
       });
-    });
+    } else {
+      render('logout_tpl');
+    }
   });
 
   function isPullReplication(doc) {
@@ -322,6 +333,13 @@ var Tasks = (function () {
       data: JSON.stringify(obj)
     });
   }
+
+
+  router.post('#logout', function() {
+    $.couch.logout().then(function() {
+      document.location.href = '';
+    });
+  });
 
 
   router.post('#toggle_sync', function (_d, e, details) {
