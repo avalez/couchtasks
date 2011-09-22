@@ -628,7 +628,7 @@ var Tasks = (function () {
     var fun = (!tagsFromUrl().length) ? fetchAllTasks : fetchTaggedTasks;
     var tags = null, tasks = null;
     var start = 0;
-    var limit = 10;
+    var limit = 20;
 
     // A tag intersection request may return few or no results, if it Fetches
     // less than the limit, recusrse until there are at least limit items, or
