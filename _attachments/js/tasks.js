@@ -338,7 +338,7 @@ var Tasks = (function () {
 
   router.post('#logout', function() {
     $.couch.logout().then(function() {
-      document.location.href = '';
+      document.location.href = '/';
     });
   });
 
