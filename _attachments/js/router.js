@@ -24,9 +24,9 @@ var Router = (function() {
   function back() {
     history.pop(); // current url
     if (history.length > 0) {
-      document.location.href = "#" + history.pop();
+      document.location.href = history.pop();
     } else {
-      document.location.href = "#";
+      document.location.href = "#/";
     }
   }
 
