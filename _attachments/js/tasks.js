@@ -39,6 +39,7 @@ var localJSON = (function(){
 // MIT License
 
 function parseUri (str) {
+
   var o = parseUri.options;
   var m = o.parser[o.strictMode ? "strict" : "loose"].exec(str);
   var uri = {};
@@ -135,7 +136,7 @@ var Tasks = (function () {
   };
 
 
-  var syncHost = "couchtasks.arandomurl.com";
+  var syncHost = config.couch.host + ':' + config.couch.port;
 
   // This is the list of predefined tag colours, if there are more tags
   // than colours then tags turn black
@@ -1022,10 +1023,15 @@ var Tasks = (function () {
   // Only start handling real time updates after a delay to get round
   // a silly bug in webkit that shows a page as still loading if ajax
   // requests are made before the whole page has loaded
-  setTimeout(handleChanges, 5000);
+  setTimeout(handleChanges, 1000);
 
   // Lets start this baby
-  router.init(window);
+  (function() {
+    var source = 'http://' + syncHost + '/master';
+    $.couch.replicate(source, dbName, {error:nil}).then(function() {
+      router.init(window);
+    });
+  })();
 
   $('header').noisy({
     intensity: 1,
