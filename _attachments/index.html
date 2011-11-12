@@ -192,6 +192,7 @@
         <form action="#toggle_sync">
           <input type="hidden" name="active"
                  value="{{#active}}true{{/active}}{{^active}}false{{/active}}" />
+          <input type="hidden" name="uri" value="{{uri}}" />
           <input type="hidden" name="username" value="{{username}}" />
           <input type="hidden" name="password" value="{{password}}" />
           <input type="submit" class="button" id="repl_status"
@@ -204,6 +205,7 @@
         {{/registered}}
         {{^registered}}
         <form action="#create_sync" id="create_replication_form">
+          <input type="text" name="uri" placeholder="Enter URI" />
           <input type="text" name="username" placeholder="Enter Username" />
           <div class="input">
             <label for="new_user">I am a new user</label>
@@ -220,7 +222,6 @@
 
   </body>
 
-  <script src="./js/conf.js"></script>
   <script src="./js/jquery-1.6.min.js"></script>
   <script src="./js/modernizr-1.7.min.js"></script>
   <script src="./js/underscore.js"></script>

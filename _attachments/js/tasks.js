@@ -136,7 +136,7 @@ var Tasks = (function () {
   };
 
 
-  var syncHost = config.couch.host + ':' + config.couch.port;
+  var syncHost; // initialized later
 
   // This is the list of predefined tag colours, if there are more tags
   // than colours then tags turn black
@@ -208,6 +208,7 @@ var Tasks = (function () {
           arrayAny(repls[0], isPushReplication);
 
         render('sync_tpl', {}, {
+          uri: registered && config.sync.uri || "",
           username: registered && config.sync.username || "",
           password: registered && config.sync.password || "",
           registered: registered,
@@ -357,11 +358,12 @@ var Tasks = (function () {
 
       var opts = {continuous: true};
       var local = 'couchtasks';
-      var remote = 'http://' + details.username + ':' + details.password + '@' +
-        syncHost + '/' + details.username;
+      var remote = 'http://' + (details.username ? details.username + ':' + details.password + '@' : '') +
+        details.uri;
 
       $.when($.couch.replicate(local, remote, {error:nil}, opts),
              $.couch.replicate(remote, local, {error:nil}, opts)).then(function() {
+               syncHost = details.uri.substring(0, details.uri.indexOf('/'));
                router.refresh();
              }).fail(function() {
                $("#repl_status").val("Failed!");
@@ -375,6 +377,7 @@ var Tasks = (function () {
     var saveDetails = function(config) {
 
       config.sync = {
+        uri: details.uri,
         username: details.username,
         password: details.password
       };
@@ -1027,10 +1030,26 @@ var Tasks = (function () {
 
   // Lets start this baby
   (function() {
-    var source = 'http://' + syncHost + '/master';
-    $.couch.replicate(source, dbName, {error:nil}).then(function() {
-      router.init(window);
-    });
+    router.init(window);
+
+    if (plainCouchApp) {
+      var opts = {continuous: true};
+      var local = 'couchtasks';
+      $.when($db.openDoc("_local/config", {error:nil})).then(function (config) {
+        var details = config ? config.sync : '';
+        
+        if (details) {
+          var remote = 'http://' + (details.username ? details.username + ':' + details.password + '@' : '') +
+            details.uri;
+
+          $.couch.replicate(local, remote, {error:nil}, opts);
+          $.couch.replicate(remote, local, {error:nil}, opts);
+          
+          syncHost = details.uri.substring(0, details.uri.indexOf('/'));
+        }
+      })
+    }
+    
   })();
 
   $('header').noisy({
